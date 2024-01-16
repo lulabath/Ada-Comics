@@ -1,5 +1,5 @@
 /* Useful Features */
-const $ = (selector) => document.querySelector(selector)
+const $ = (selector) => document.querySelector(selector);
 
 const cleanUrl = `http://gateway.marvel.com/v1/public/`
 let ts = `ts=1`
@@ -21,155 +21,130 @@ const getMarvel = async (recurso, offset, itemsPerPage) => {
 };
 
 
-const printDataMarvel = async (recurso, data) => {
-    if (recurso === 'characters') {
-        $("#count-results").innerHTML = `Resultados : ${data.length}`;
-        $("#results").innerHTML = ``;
-        for (const character of data) {
-            $("#results").innerHTML += `
-        <div class="flex flex-col bg-black bg-clip-border border border-zinc-400 border-solid text-white font-semibold w-40 h-64 m-4">
+const printDataMarvel = (recurso, data) => {
+
+    $("#count-results").innerHTML = `Resultados : ${data.length}`;
+    $("#results").innerHTML = ``;
+
+    for (const item of data) {
+        let thumbnail = item.thumbnail.path + "." + item.thumbnail.extension;
+        $("#results").innerHTML += `
+        <div class="flex flex-col bg-black text-white font-semibold w-40 h-64 m-4">
             <div class="h-2/3">
-                <img class="border-b-4 border-red-600 h-full w-full" src="${character.thumbnail.path}.${character.thumbnail.extension}" alt="img-character">
+                <img class="border-b-4 border-red-600 h-full w-full" src="${thumbnail}" alt="img-${recurso}">
             </div>
-            <div class="text-center">
-                <h1 class="text-white text-sm">${character.name}</h1>
+            <div class="text-center mt-2">
+                <h1 class="text-white text-sm">${recurso === 'characters' ? item.name : item.title}</h1>
             </div>
         </div>
         `
-        console.log(character.name);
-        }
-    }
-    else if (recurso === 'comics') {
-        $("#results").innerHTML = ``;
-        for (const comic of data) {
-            $("#results").innerHTML += `
-            <div class="flex flex-col bg-black bg-clip-border border border-zinc-400 border-solid text-white font-semibold w-48 h-64 m-4">
-                <div class="h-2/3">
-                    <img class="border-b-4 border-red-600 h-full w-full" src="${comic.thumbnail.path}.${comic.thumbnail.extension}" alt="img-comic">
-                </div>
-                <div class="text-center">
-                    <h1 class="text-white text-sm">${comic.title}</h1>
-                </div>
-            </div>
-            `
-        }
+        console.log(item);
     }
 };
-
-
-
-/* filters */
-// $("#type-select").addEventListener("change", () => {
-//     if ($("#type-select").value === 'comics') {
-//         printDataMarvel('comics');
-//     }
-//     else if ($("#type-select").value === 'characters') {
-//         printDataMarvel('characters');
-//     }
-// });
-
-// $("#search-btn").addEventListener("click", ()=>{
-//     const val = $("#type-select").value
-//     printDataMarvel(val)
-// })
-
-// $("#sort-select").addEventListener("change", async () => {
-//     if (marvelData) {
-//         switch ($("#sort-select").value) {
-//             case "newer":
-//                 marvelData.sort((a, b) => new Date(b.dates.date) - new Date(a.dates.date));
-//                 break
-//             case "older":
-//                 marvelData.sort((a, b) => new Date(a.dates.date) - new Date(b.dates.date));
-//                 break
-//             case "a-to-z":
-//                 marvelData.sort((a, b) => a.title.localeCompare(b.title));
-//                 break
-//             case "z-to-a":
-//                 marvelData.sort((b, a) => b.title.localeCompare(a.title));
-//                 break
-//         }
-//     await printDataMarvel($("#type-select").value);
-//     }
-// });
-
 
 /* PAGINATION */
-const pagination = async (promesa) => {
-    const result = await promesa;
-    const getTotalPages = () => Math.ceil(result.data.total / itemsPerPage); 
 
-    const updatePageInfo = () => {
-        $("#current-page").textContent = `Pag ${page} de ${getTotalPages()}`;
-    };
-
-    const updateResults = () => {
-        printDataMarvel($("#type-select").value, result.data.results);
-    };
-
-    $("#first-page").addEventListener("click", async () => {
-        if (page > 1) {
-            page = 1;
-            offset = (page -1) * itemsPerPage;
-            const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
-            marvelData = newData;
-            updateResults();
-            updatePageInfo();
-        }
-        console.log('soy first');
-    });
-
-    $("#previous-page").addEventListener("click", async () => {
-        if (page > 1) {
-            page--;
-            offset = (page - 1) * itemsPerPage;
-            if(offset < 0) offset = 0;
-            const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
-            marvelData = newData;
-            updateResults();
-            updatePageInfo();
-        }
-        console.log('soy prev');
-    });
-
-    $("#next-page").addEventListener("click", async () => {
-        const lastPage = getTotalPages();
-        if (page < lastPage) {
-            page++;
-            offset = (page - 1) * itemsPerPage;
-            const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
-            marvelData = newData;
-            updateResults();
-            updatePageInfo();
-        }
-        console.log('soy next');
-    });
-
-    $("#last-page").addEventListener("click", async () => {
-        const lastPage = getTotalPages();
-        if (page < lastPage) {
-            page = lastPage;
-            offset = (page - 1) * itemsPerPage;
-            const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
-            marvelData = newData;
-            updateResults();
-            updatePageInfo();
-        }
-        console.log('soy last');
-    });
-
-    updatePageInfo();
-    updateResults();
-    
+const updatePageInfo = () => {
+    $("#current-page").textContent = `Pag ${page}`;
 };
 
-const initializeApp = async () => {
+/* SEARCH EVENTS*/
+$("#search-btn").addEventListener("click", async () => {
+    const type = $("#type-select").value;
+    const sort = $("#sort-select").value;
+    const searchInput = $("#input-search").value;
+
+    offset = 0; // lo vuelvo a reiniciar
+
+    try {
+        const response = await getMarvel(type, offset, itemsPerPage);
+        marvelData = response.data;
+        const filteredData = marvelData.results.filter(item =>
+            item.name.includes(searchInput) ||
+            item.title.includes(searchInput)
+        );
+
+        switch (sort) {
+            case "newer":
+                filteredData.sort((a, b) => new Date(b.dates.date) - new Date(a.dates.date));
+                break;
+            case "older":
+                filteredData.sort((a, b) => new Date(a.dates.date) - new Date(b.dates.date));
+                break;
+            case "a-to-z":
+                filteredData.sort((a, b) => a.title.localeCompare(b.title));
+                break;
+            case "z-to-a":
+                filteredData.sort((b, a) => b.title.localeCompare(a.title));
+                break;
+        }
+
+        printDataMarvel(type, filteredData);
+        updatePageInfo();
+
+    } catch (error) {
+        console.log("erroe fetching", error)
+    }
+});
+
+/* PAGINATION EVENTS */
+$("#first-page").addEventListener("click", async () => {
+    page = 1;
+    offset = (page - 1) * itemsPerPage;
+    const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
+    marvelData = newData.data;
+    printDataMarvel($("#type-select").value, marvelData.results);
+    updatePageInfo();
+    console.log('soy first');
+});
+
+$("#previous-page").addEventListener("click", async () => {
+    if (page > 1) {
+        page--;
+        offset = (page - 1) * itemsPerPage;
+        const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
+        marvelData = newData.data;
+        printDataMarvel($("#type-select").value, marvelData.results);
+        updatePageInfo();
+    }
+    console.log('soy prev');
+});
+
+$("#next-page").addEventListener("click", async () => {
+    const lastPage = Math.ceil(marvelData.total / itemsPerPage);
+    if (page < lastPage) {
+        page++;
+        offset = (page - 1) * itemsPerPage;
+        const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
+        marvelData = newData.data;
+        printDataMarvel($("#type-select").value, marvelData.results);
+        updatePageInfo();
+    }
+    console.log('soy next');
+});
+
+$("#last-page").addEventListener("click", async () => {
+    const lastPage = Math.ceil(marvelData.total / itemsPerPage);
+    if (page < lastPage) {
+        page = lastPage;
+        offset = (page - 1) * itemsPerPage;
+        const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
+        marvelData = newData.data;
+        printDataMarvel($("#type-select").value, marvelData.results);
+        updatePageInfo();
+    }
+    console.log('soy last');
+});
+
+
+/* INITIALIZE APP */
+window.addEventListener("load", async () => {
     try {
         const response = await getMarvel('comics', offset, itemsPerPage);
-        marvelData = response || {};
-        pagination(Promise.resolve());
+        marvelData = response.data;
+        printDataMarvel('comics', marvelData.results);
+        updatePageInfo();
     } catch (error) {
         console.error("Error fetching Marvel data:", error);
     }
-};
-window.addEventListener("load", initializeApp)
+});
