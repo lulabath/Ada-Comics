@@ -1,6 +1,5 @@
 /* Useful Features */
 const $ = (selector) => document.querySelector(selector)
-const $$ = (selector) => document.querySelectorAll(selector)
 
 const cleanUrl = `http://gateway.marvel.com/v1/public/`
 let ts = `ts=1`
@@ -10,52 +9,52 @@ const hash = "&hash=bf65d7f2a26f6d85116463c0b81b4273"
 let marvelData;
 let page = 1;
 let itemsPerPage = 20;
-let set = 1;
+let offset = 0;
 
 /* llamado a la Api */
-const getMarvel = async (recurso, set, itemsPerPage) => {
-    let url = `${cleanUrl}${recurso}?${ts}${publicKey}${hash}&offset=${set}&limit=${itemsPerPage}`
-    const response = await fetch(url)
+const getMarvel = async (recurso, offset, itemsPerPage) => {
+    let url = `${cleanUrl}${recurso}?${ts}${publicKey}${hash}&offset=${offset}&limit=${itemsPerPage}`;
+    const response = await fetch(url);
     const getData = await response.json();
     console.log("ahora me podes manipular", getData.data.results)
-    return getData.data.results;
-}
+    return getData;
+};
 
 
-const printDataMarvel = async (recurso) => {
+const printDataMarvel = async (recurso, data) => {
     if (recurso === 'characters') {
-        $("#count-results").innerHTML = `Resultados : ${marvelData.length}`
+        $("#count-results").innerHTML = `Resultados : ${data.length}`;
         $("#results").innerHTML = ``;
-        for (const data of marvelData) {
+        for (const character of data) {
             $("#results").innerHTML += `
         <div class="flex flex-col bg-black bg-clip-border border border-zinc-400 border-solid text-white font-semibold w-40 h-64 m-4">
             <div class="h-2/3">
-                <img class="border-b-4 border-red-600 h-full w-full" src="${data.thumbnail.path}.${data.thumbnail.extension}" alt="img-character">
+                <img class="border-b-4 border-red-600 h-full w-full" src="${character.thumbnail.path}.${character.thumbnail.extension}" alt="img-character">
             </div>
             <div class="text-center">
-                <h1 class="text-white text-sm">${data.name}</h1>
+                <h1 class="text-white text-sm">${character.name}</h1>
             </div>
         </div>
         `
-        console.log(data.name);
+        console.log(character.name);
         }
     }
     else if (recurso === 'comics') {
         $("#results").innerHTML = ``;
-        for (const data of marvelData) {
+        for (const comic of data) {
             $("#results").innerHTML += `
             <div class="flex flex-col bg-black bg-clip-border border border-zinc-400 border-solid text-white font-semibold w-48 h-64 m-4">
                 <div class="h-2/3">
-                    <img class="border-b-4 border-red-600 h-full w-full" src="${data.thumbnail.path}.${data.thumbnail.extension}" alt="img-comic">
+                    <img class="border-b-4 border-red-600 h-full w-full" src="${comic.thumbnail.path}.${comic.thumbnail.extension}" alt="img-comic">
                 </div>
                 <div class="text-center">
-                    <h1 class="text-white text-sm">${data.title}</h1>
+                    <h1 class="text-white text-sm">${comic.title}</h1>
                 </div>
             </div>
             `
         }
     }
-}
+};
 
 
 
@@ -96,29 +95,24 @@ const printDataMarvel = async (recurso) => {
 
 
 /* PAGINATION */
-
-
 const pagination = async (promesa) => {
     const result = await promesa;
-
-    const getTotalPages = () => Math.ceil(marvelData.length / itemsPerPage); 
+    const getTotalPages = () => Math.ceil(result.data.total / itemsPerPage); 
 
     const updatePageInfo = () => {
-        $("#current-page").textContent = `Page ${page} of ${getTotalPages()}`;
+        $("#current-page").textContent = `Pag ${page} de ${getTotalPages()}`;
     };
 
     const updateResults = () => {
-        const startIndex = (page - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const slicedData = marvelData.slice(startIndex, endIndex);
-        printDataMarvel($("#type-select").value, slicedData);
+        printDataMarvel($("#type-select").value, result.data.results);
     };
 
     $("#first-page").addEventListener("click", async () => {
         if (page > 1) {
             page = 1;
-            set = (page -1) * itemsPerPage;
-            await getMarvel($("#type-select").value, set, itemsPerPage);
+            offset = (page -1) * itemsPerPage;
+            const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
+            marvelData = newData;
             updateResults();
             updatePageInfo();
         }
@@ -128,9 +122,10 @@ const pagination = async (promesa) => {
     $("#previous-page").addEventListener("click", async () => {
         if (page > 1) {
             page--;
-            set = (page - 1) * itemsPerPage;
-            if(set < 0) set = 0;
-            await getMarvel($("#type-select").value, set, itemsPerPage);
+            offset = (page - 1) * itemsPerPage;
+            if(offset < 0) offset = 0;
+            const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
+            marvelData = newData;
             updateResults();
             updatePageInfo();
         }
@@ -141,8 +136,9 @@ const pagination = async (promesa) => {
         const lastPage = getTotalPages();
         if (page < lastPage) {
             page++;
-            set = (page - 1) * itemsPerPage;
-            await getMarvel($("#type-select").value, set, itemsPerPage);
+            offset = (page - 1) * itemsPerPage;
+            const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
+            marvelData = newData;
             updateResults();
             updatePageInfo();
         }
@@ -153,8 +149,9 @@ const pagination = async (promesa) => {
         const lastPage = getTotalPages();
         if (page < lastPage) {
             page = lastPage;
-            set = (page - 1) * itemsPerPage;
-            await getMarvel($("#type-select").value, set, itemsPerPage);
+            offset = (page - 1) * itemsPerPage;
+            const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
+            marvelData = newData;
             updateResults();
             updatePageInfo();
         }
@@ -167,7 +164,12 @@ const pagination = async (promesa) => {
 };
 
 const initializeApp = async () => {
-    marvelData = await getMarvel('comics', set, itemsPerPage);
-    pagination(Promise.resolve());
+    try {
+        const response = await getMarvel('comics', offset, itemsPerPage);
+        marvelData = response || {};
+        pagination(Promise.resolve());
+    } catch (error) {
+        console.error("Error fetching Marvel data:", error);
+    }
 };
 window.addEventListener("load", initializeApp)
