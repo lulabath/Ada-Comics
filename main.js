@@ -16,7 +16,7 @@ const getMarvel = async (recurso, offset, itemsPerPage) => {
     let url = `${cleanUrl}${recurso}?${ts}${publicKey}${hash}&offset=${offset}&limit=${itemsPerPage}`;
     const response = await fetch(url);
     const getData = await response.json();
-    console.log("ahora me podes manipular", getData.data.results)
+   // console.log("ahora me podes manipular", getData.data.results)
     return getData;
 };
 
@@ -29,23 +29,23 @@ const printDataMarvel = (recurso, data) => {
     for (const item of data) {
         let thumbnail = item.thumbnail.path + "." + item.thumbnail.extension;
         $("#results").innerHTML += `
-        <div class="flex flex-col bg-black text-white font-semibold w-40 h-64 m-4">
+        <div class="flex flex-col bg-black text-white font-semibold w-56 h-100 m-2">
             <div class="h-2/3">
-                <img class="border-b-4 border-red-600 h-full w-full" src="${thumbnail}" alt="img-${recurso}">
+                <img class="shadow-lg shadow-red-600/50 h-full w-full" src="${thumbnail}" alt="img-${recurso}">
             </div>
-            <div class="text-center mt-2">
+            <div class="text-center mt-6">
                 <h1 class="text-white text-sm">${recurso === 'characters' ? item.name : item.title}</h1>
             </div>
         </div>
         `
-        console.log(item);
+        //console.log(item);
     }
 };
 
 /* PAGINATION */
 
 const updatePageInfo = () => {
-    $("#current-page").textContent = `Pag ${page}`;
+    $("#current-page").textContent = `pag ${page}`;
 };
 
 /* SEARCH EVENTS*/
@@ -60,8 +60,8 @@ $("#search-btn").addEventListener("click", async () => {
         const response = await getMarvel(type, offset, itemsPerPage);
         marvelData = response.data;
         const filteredData = marvelData.results.filter(item =>
-            item.name.includes(searchInput) ||
-            item.title.includes(searchInput)
+            item.name.toLowerCase().includes(searchInput.toLowerCase()) ||
+            item.title.toLowerCase().includes(searchInput.toLowerCase())
         );
 
         switch (sort) {
@@ -71,12 +71,12 @@ $("#search-btn").addEventListener("click", async () => {
             case "older":
                 filteredData.sort((a, b) => new Date(a.dates.date) - new Date(b.dates.date));
                 break;
-            case "a-to-z":
-                filteredData.sort((a, b) => a.title.localeCompare(b.title));
-                break;
-            case "z-to-a":
-                filteredData.sort((b, a) => b.title.localeCompare(a.title));
-                break;
+            // case "a-to-z":
+            //     filteredData.sort((a, b) => a.title.localeCompare(b.title));
+            //     break;
+            // case "z-to-a":
+            //     filteredData.sort((b, a) => b.title.localeCompare(a.title));
+            //     break;
         }
 
         printDataMarvel(type, filteredData);
