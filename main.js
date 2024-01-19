@@ -17,7 +17,7 @@ const getMarvel = async (recurso, offset, itemsPerPage) => {
     let url = `${cleanUrl}${recurso}?${ts}${publicKey}${hash}&offset=${offset}&limit=${itemsPerPage}`;
     const response = await fetch(url);
     const getData = await response.json();
-   // console.log("ahora me podes manipular", getData.data.results)
+    // console.log("ahora me podes manipular", getData.data.results)
     return getData;
 };
 
@@ -25,22 +25,22 @@ const getMarvel = async (recurso, offset, itemsPerPage) => {
 const printDataMarvel = (recurso, data) => {
     $("#count-results").innerHTML = `Resultados : ${data.length}`;
     $("#results").innerHTML = ``;
-  
+
     for (const item of data) {
-      let thumbnail = item.thumbnail.path + "." + item.thumbnail.extension; /* NO FUNCIONAN LOS FOCUS*/
-      $("#results").innerHTML += `
+        let thumbnail = item.thumbnail.path + "." + item.thumbnail.extension; /* NO FUNCIONAN LOS FOCUS*/
+        $("#results").innerHTML += `
         <div tabindex="0" class="flex flex-col font-semibold w-56 h-100 m-2 p-2">
-            <div class="h-2/3  :focus:translate-y-[5]">                                        
-                <img class="shadow-lg shadow-red-600/50 h-full w-full" src="${thumbnail}" alt="img-${recurso}">
+            <div class="h-2/3  :focus:translate-y-[5]">
+                <img class="shadow-lg shadow-zinc-500/70 h-full w-full" src="${thumbnail}" alt="img-${recurso}">
             </div>
             <div class="text-center mt-6 ">
                 <h1 class="text-sm :focus:text-red-600">${recurso === 'characters' ? item.name : item.title}</h1>
             </div>
         </div>
         `;
-      //console.log(item);
+        //console.log(item);
     }
-  };
+};
 
 /* PAGINATION */
 
@@ -75,15 +75,15 @@ $("#search-btn").addEventListener("click", async () => {
                 filteredData.sort((a, b) => {
                     const titleA = a.title || a.name || '';
                     const titleB = b.title || b.name || '';
-                   return titleA.localeCompare(titleB)
+                    return titleA.localeCompare(titleB)
                 });
-                
+
                 break;
             case "z-to-a":
                 filteredData.sort((a, b) => {
                     const titleA = a.title || a.name || '';
                     const titleB = b.title || b.name || '';
-                   return titleB.localeCompare(titleA)
+                    return titleB.localeCompare(titleA)
                 });
                 break;
         }
@@ -147,26 +147,34 @@ $("#last-page").addEventListener("click", async () => {
 
 /* change mode */
 const toggleDarkMode = () => {
+    const elementsToToggle = ["#page-body", "#results-container", "#search-btn", "#type-select", "#sort-select", "#div-input-text", "#sun-light", "#moon-dark"];
+
     $("#page-body").classList.toggle("bg-black");
     $("#page-body").classList.toggle("bg-white");
-    $("#page-body").classList.toggle("text-white");
-    $("#page-body").classList.toggle("text-black");
+    
+        
+    elementsToToggle.forEach(element => {
+        document.querySelector(element).classList.toggle("text-black");
+        document.querySelector(element).classList.toggle("text-white");
+    });
+
+    const bordersToToggle = ["#search-btn", "#type-select", "#sort-select", "#div-input-text"];
+
+    bordersToToggle.forEach(element => {
+        document.querySelector(element).classList.toggle("border-white");
+        document.querySelector(element).classList.toggle("border-black");
+    });
 
     $("#sun-light").classList.toggle("hidden");
     $("#moon-dark").classList.toggle("hidden");
-    $("#results-container").classList.toggle("text-white");
-    $("#results-container").classList.toggle("text-black");
 };
+
 $("#sun-light").addEventListener("click", () => {
     toggleDarkMode();
-    $("#sun-light").classList.add("hidden");
-    $("#moon-dark").classList.remove("hidden");
 });
 
 $("#moon-dark").addEventListener("click", () => {
     toggleDarkMode();
-    $("#moon-dark").classList.add("hidden");
-    $("#sun-light").classList.remove("hidden");
 });
 
 
