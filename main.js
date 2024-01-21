@@ -12,24 +12,39 @@ let itemsPerPage = 20;
 let offset = 0;
 
 
+
+/* construyo la URL */
+const buildUrlMarvel = (recurso) => {
+    return `${cleanUrl}${recurso}?${ts}${publicKey}${hash}`;
+};
+
+/* construyo los searchParams */
+const buildSearchParams = (offset, itemsPerPage) => {
+    return `&offset=${offset}&limit=${itemsPerPage}`;
+};
+
 /* llamado a la Api */
-const getMarvel = async (recurso, offset, itemsPerPage) => {
-    let url = `${cleanUrl}${recurso}?${ts}${publicKey}${hash}&offset=${offset}&limit=${itemsPerPage}`;
+const fetchMarvel = async (url) => {
     const response = await fetch(url);
-    const getData = await response.json();
-    // console.log("ahora me podes manipular", getData.data.results)
-    return getData;
+    const data = await response.json();
+    console.log("data=", data);
+    return data;
+
+};
+
+const getMarvel = async (recurso, offset, itemsPerPage) => {
+    const url = buildUrlMarvel(recurso) + buildSearchParams(offset, itemsPerPage);
+    return await fetchMarvel(url);
 };
 
 
 const printDataMarvel = (recurso, data) => {
-    $("#count-results").innerHTML = `Resultados : ${data.length}`;
     $("#results").innerHTML = ``;
 
     for (const item of data) {
         let thumbnail = item.thumbnail.path + "." + item.thumbnail.extension; /* NO FUNCIONAN LOS FOCUS*/
         $("#results").innerHTML += `
-        <div tabindex="0" class="flex flex-col font-semibold w-56 h-100 m-2 p-2">
+        <div tabindex="0" class="flex flex-col font-semibold w-56 h-100 m-2 p-2" data-id="${item.id}">
             <div class="h-2/3  :focus:translate-y-[5]">
                 <img class="shadow-lg shadow-zinc-500/70 h-full w-full" src="${thumbnail}" alt="img-${recurso}">
             </div>
@@ -42,14 +57,63 @@ const printDataMarvel = (recurso, data) => {
     }
 };
 
-/* PAGINATION */
+const showComicDetails = (comic) => {
+    //actualizo los elementos
+    $("#comic-thumbnail").src = `${comic.thumbnail.path}.${comic.thumbnail.extension}`;
+    $("#comic-thumbnail").classList.add("w-52", "h-64");
+    $("#comic-title").textContent = comic.title;
+    $("#comic-date").textContent = `Fecha de publicación: ${comic.dates[0].date}`;
+    $("#comic-description").textContent = comic.description || "Sin descripción disponible";
 
+    getComicDetails(comic.id)
+        .then((response) => {
+            const characters = response.data.results[0].characters.items;
+            $("#comic-characters").innerHTML = "<p class='text-xl font-bold mb-2'>Personajes:</p>";
+            characters.forEach((character) => {
+                $("#comic-characters").innerHTML += `<p>${character.name}</p>` || `<p>Sin personajes</p>`;
+            });
+        });
+    //manejo las vistas
+    $("#results-container").classList.add("hidden");
+    $("#comic-details").classList.remove("hidden");
+};
+
+const getComicDetails = async (comicId) => {
+    try {
+
+        const url = buildUrlMarvel(`comics/${comicId}`);
+
+        return await fetchMarvel(url);
+    }
+    catch (error) {
+        console.error("Error fetching comic details:", error);
+        throw error;
+    }
+};
+
+//evento click del comic 
+$("#results").addEventListener("click", (event) => {
+    console.log("estoy escuchando");
+    const comicElement = event.target.closest(".flex");
+    if (comicElement) {
+        const comicId = comicElement.getAttribute("data-id");
+        const selectedComic = marvelData.results.find((comic) => comic.id == comicId);
+        if (selectedComic) {
+            showComicDetails(selectedComic);
+        }
+    }
+});
+
+/* PAGINATION */
 const updatePageInfo = () => {
     $("#current-page").textContent = `pag ${page}`;
 };
 
 /* SEARCH EVENTS*/
 $("#search-btn").addEventListener("click", async () => {
+    $("#comic-details").classList.add('hidden');
+    $("#results").classList.remove('hidden');
+
     const type = $("#type-select").value;
     const sort = $("#sort-select").value;
     const searchInput = $("#input-search").value;
@@ -57,13 +121,19 @@ $("#search-btn").addEventListener("click", async () => {
     offset = 0; // lo vuelvo a reiniciar
 
     try {
-        const response = await getMarvel(type, offset, itemsPerPage);
+        const url = buildUrlMarvel(type) + buildSearchParams(offset, itemsPerPage);
+        const response = await fetchMarvel(url);
+        console.log("atos de la Api", response);
+
         marvelData = response.data;
 
-        const filteredData = marvelData.results.filter(item =>
-            (item.name || '').toLowerCase().includes(searchInput.toLowerCase()) || (item.title || '').toLowerCase.includes(searchInput.toLowerCase())
-        );
 
+        const filteredData = marvelData.results.filter(item =>
+            (item.name || '').toLowerCase().includes(searchInput.toLowerCase()) || (item.title || '').toLowerCase().includes(searchInput.toLowerCase())
+        );
+        console.log("datos filtrados", filteredData);
+
+        $("#count-results").innerHTML = `Resultados : ${filteredData.length}`
         switch (sort) {
             case "newer":
                 filteredData.sort((a, b) => new Date(b.dates.date) - new Date(a.dates.date));
@@ -134,6 +204,7 @@ $("#next-page").addEventListener("click", async () => {
 
 $("#last-page").addEventListener("click", async () => {
     const lastPage = Math.ceil(marvelData.total / itemsPerPage);
+    console.log(marvelData.total)
     if (page < lastPage) {
         page = lastPage;
         offset = (page - 1) * itemsPerPage;
@@ -151,8 +222,8 @@ const toggleDarkMode = () => {
 
     $("#page-body").classList.toggle("bg-black");
     $("#page-body").classList.toggle("bg-white");
-    
-        
+
+
     elementsToToggle.forEach(element => {
         document.querySelector(element).classList.toggle("text-black");
         document.querySelector(element).classList.toggle("text-white");
@@ -177,11 +248,17 @@ $("#moon-dark").addEventListener("click", () => {
     toggleDarkMode();
 });
 
+$("#back-btn").addEventListener("click", () => {
+    console.log("funciona el btn back");
+    $("#results-container").classList.remove("hidden");
+    $("#comic-details").classList.add("hidden");
+});
 
 /* INITIALIZE APP */
 window.addEventListener("load", async () => {
     try {
-        const response = await getMarvel('comics', offset, itemsPerPage);
+        const url = buildUrlMarvel('comics') + buildSearchParams(offset, itemsPerPage);
+        const response = await fetchMarvel(url);
         marvelData = response.data;
         printDataMarvel('comics', marvelData.results);
         updatePageInfo();

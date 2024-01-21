@@ -50,14 +50,27 @@
             <div id="results" class="flex flex-wrap justify-center">
                 <!--inject data from JS-->
             </div>
-        </section>
-        <div id="pagination" class="m-10 flex justify-center font-medium">
+            <div id="pagination" class="m-10 flex justify-center font-medium">
             <button id="first-page" class="button m-1"><i class="fa-solid fa-angles-left"></i></button>
             <button id="previous-page" class="button m-1"><i class="fa-solid fa-angle-left"></i></button>
             <p id="current-page" class="button m-1"></p>
             <button id="next-page" class="button m-1"><i class="fa-solid fa-angle-right"></i></button>
             <button id="last-page" class="button m-1"><i class="fa-solid fa-angles-right"></i></button>
         </div>
+        </section>
+        <section id="comic-details" class="hidden mt-6">
+            <div id="comic-details-content" class="flex flex-col">
+                <img id="comic-thumbnail" class="shadow-zinc-500/70 w-full h-full" alt="Comic Thumbnail">
+                <div class="flex flex-col ml-4">
+                    <h2 id="comic-title" class="text-2xl font-bold my-2"></h2>
+                    <p id="comic-date" class="text-sm"></p>
+                    <p id="comic-description" class="text-justify"></p>
+                </div>
+                <div id="comic-characters" class="flex flex-wrap justify-center mt-4"></div>
+            </div>
+            <button id="back-btn" type="button"><i class="fa-solid fa-arrow-left-long"></i></button>
+        </section>
+        
     </main>
     <script src="main.js"></script>
 </body>
