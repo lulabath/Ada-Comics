@@ -58,7 +58,7 @@
             <button id="last-page" class="button m-1"><i class="fa-solid fa-angles-right"></i></button>
         </div>
         </section>
-        <section id="comic-details" class="hidden mt-6">
+        <section id="comic-details" class="hidden mt-6 w-3/4">
             <div id="comic-details-content" class="flex flex-col">
                 <img id="comic-thumbnail" class="shadow-zinc-500/70 w-full h-full" alt="Comic Thumbnail">
                 <div class="flex flex-col ml-4">
@@ -69,6 +69,20 @@
                 <div id="comic-characters" class="flex flex-wrap justify-center mt-4"></div>
             </div>
             <button id="back-btn" type="button"><i class="fa-solid fa-arrow-left-long"></i></button>
+        </section>
+<!--section character details-->
+        <section id="character-details" class="hidden mt-6 w-3/4">
+            <div id="characters-details-content" class="flex flex-col">
+                <div class="flex">
+                    <img id="character-thumbnail" class="shadow-zinc-500/70 w-full h-full" alt="Character Thumbnail">
+                    <div class="flex flex-col ml-4">
+                        <h2 id="character-name"  class="text-2xl font-bold my-2"></h2>
+                        <p id="character-description" class="text-justify"></p>
+                    </div>
+                </div>
+                <div id="character-comics" class="flex flex-wrap justify-center mt-4"></div>
+            </div>
+            <button id="back-to-results" type="button"><i class="fa-solid fa-arrow-left-long"></i></button>
         </section>
         
     </main>

@@ -58,6 +58,11 @@ const printDataMarvel = (recurso, data) => {
 };
 
 const showComicDetails = (comic) => {
+    if(!comic || !comic.thumbnail || !comic.dates || !comic.dates[0]) {
+    console.error('Invalid comic, comic', comic);
+    return;
+    }
+      
     //actualizo los elementos
     $("#comic-thumbnail").src = `${comic.thumbnail.path}.${comic.thumbnail.extension}`;
     $("#comic-thumbnail").classList.add("w-52", "h-64");
@@ -66,11 +71,30 @@ const showComicDetails = (comic) => {
     $("#comic-description").textContent = comic.description || "Sin descripción disponible";
 
     getComicDetails(comic.id)
-        .then((response) => {
+        .then(async (response) => {
             const characters = response.data.results[0].characters.items;
-            $("#comic-characters").innerHTML = "<p class='text-xl font-bold mb-2'>Personajes:</p>";
-            characters.forEach((character) => {
-                $("#comic-characters").innerHTML += `<p>${character.name}</p>` || `<p>Sin personajes</p>`;
+            if(characters.length > 0) {
+                $("#comic-characters").innerHTML = "<p class='text-xl font-bold mb-2'>Personajes:</p>";
+                for(const character of characters) {
+                   const characterDetails = await getCharacterDetails(character.resourceURI.split('/').pop());
+                   const characterThumbnail = characterDetails.data.results[0].thumbnail;
+                   $("#comic-characters").innerHTML += `
+                   <div class="character-card" data-id="${characterDetails.data.results[0].id}">
+                     <img class="w-20 h-32" src="${characterThumbnail.path}.${characterThumbnail.extension}" alt="${characterDetails.data.results[0].name}">
+                     <p>${characterDetails.data.results[0].name}</p>
+                   </div>`
+                }
+                
+            } else {
+                $("#comic-characters").innerHTML = "<p>Sin personajes</p>";
+            }
+
+            //agrego el atributo data id con la clase charactercard
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const characterId = card.getAttribute('data-id');
+                    showCharacterDetails(characterId);
+                });
             });
         });
     //manejo las vistas
@@ -91,15 +115,93 @@ const getComicDetails = async (comicId) => {
     }
 };
 
-//evento click del comic 
-$("#results").addEventListener("click", (event) => {
-    console.log("estoy escuchando");
-    const comicElement = event.target.closest(".flex");
-    if (comicElement) {
-        const comicId = comicElement.getAttribute("data-id");
-        const selectedComic = marvelData.results.find((comic) => comic.id == comicId);
-        if (selectedComic) {
-            showComicDetails(selectedComic);
+const getCharacterComics = async (characterId) => {
+    try {
+        const url = buildUrlMarvel(`characters/${characterId}/comics`)
+        return await fetchMarvel(url);
+    } catch (error) {
+        console.error("Error fetching character comics:", error);
+    } throw error;
+};
+
+const showCharacterDetails = (characterId) => {
+    getCharacterDetails(characterId)
+        .then(async (character) => {
+            if(!character || !character.data.results[0].thumbnail){
+            console.error('characterDetails invalidooo', character)
+            return;
+            }
+
+            $("#character-thumbnail").src = `${character.data.results[0].thumbnail.path}.${character.data.results[0].thumbnail.extension}`;
+            $("#character-thumbnail").classList.add("w-52","h-64");
+            $("#character-name").textContent = character.data.results[0].name;
+            $("#character-description").textContent = character.data.results[0].description || "Sin descripción disponible";
+
+        //muestro tarj
+        $("#character-comics-container").innerHTML = "<p class='text-xl font-bold mb-2'>Comics:</p>"
+
+        getCharacterComics(characterId)
+            .then(async (response) => {
+                const comics = response.data.results;
+                for(const comic of comics) {
+                    const comicThumbnail = comic.thumbnail;
+                    //esto no me funciona porque estoy entrando mal al obj, chequear doc de API
+                    $("#character-comic-container").innerHTML += `
+                    <div class="comic-card" data-id="${comic.id}">
+                        <img class="w-20 h-32" src="${comicThumbnail.path}.${comicThumbnail.extension}" alt="${comic.title}">
+                        <p>${comic.title}</p>
+                    </div>`;
+                }
+
+                //agrego el atributo por la clase comic-card
+                document.querySelectorAll('.comic-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                            const comicId = card.getAttribute('data-id');
+                            showComicDetails(comicId);
+                    });
+                });
+            });
+ 
+    })
+    .catch(error => {
+        console.error("Error characterDetails con fetching:", error);
+    });
+
+    //muestro el contenedor de personaje y oculto los resultados listados
+    $("#character-details").classList.remove("hidden");
+    $("#results-container").classList.add("hidden");
+    $("#comic-details").classList.add("hidden");
+};
+
+const getCharacterDetails = async (characterId) => {
+    try {
+        const url = buildUrlMarvel(`characters/${characterId}`);
+        const response = await fetchMarvel(url);
+        console.log("response de characterDetails:", response);
+        return response;
+    } catch (error) {
+        console.error("error character details fetching: ", error);
+        throw error;
+    }
+};
+
+//evento para volver a listar los resultados con back to results btn
+$("#back-to-results").addEventListener("click", () => {
+    $("#results-container").classList.remove("hidden");
+    $("#character-details").classList.add("hidden");
+})
+
+$("#results").addEventListener("click", async (event) => {
+    const element = event.target.closest(".flex");
+    if (element) {
+        const id = element.getAttribute("data-id");
+        const selectedData = marvelData.results.find((data) => data.id == id);
+        if(selectedData) {
+            if(selectedData.resourceURI.includes('characters')) {
+                showCharacterDetails(id);
+            } else {
+                showComicDetails(selectedData);
+            }            
         }
     }
 });
