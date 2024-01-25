@@ -6,42 +6,44 @@
     <title>Ada Comics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://kit.fontawesome.com/68ca717a65.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+
 </head>
-<body class="font-sans bg-black text-white" id="page-body">
+<body class="font-sans bg-black text-white font-roboto" id="page-body">
     <header class="flex justify-center bg-black">
-        <button id="sun-light" ><i class="fa-regular fa-sun"></i></button>
-        <button id="moon-dark" class="hidden"><i class="fa-regular fa-moon text-white"></i></button>
-        <div class="flex justify-center w-2/4">
-            <h1 class="text-3xl font-black p-1 inline-block bg-red-600 text-white">ADA COMICS</h1>
+        <button id="sun-light" ><i class="fa-regular fa-sun text-white mr-4"></i></button>
+        <div class="bg-red-600 flex items-center" id="title-header">
+            <h1 class="font-['Bangers'] text-5xl font-cursive font-black inline-block text-white mx-2">ADA COMICS</h1>
         </div>
+        <button id="moon-dark" class="hidden ml-4"><i class="fa-regular fa-moon text-white"></i></button>
     </header>
-    <div class="w-full">
-        <img class="w-full bg-cover max-h-96" src="https://www.timeoutdubai.com/cloud/timeoutdubai/2021/09/11/UdyrLagy-imgworldsofadventuremarvelspiderman_1.jpg" alt="marvel-photo">
+    <div class="w-full h-96">
+        <img class="w-full h-full object-cover" src="https://www.timeoutdubai.com/cloud/timeoutdubai/2021/09/11/UdyrLagy-imgworldsofadventuremarvelspiderman_1.jpg" alt="marvel-photo">
     </div>
     <main class="p-4" id="main">
-        <section id="search-section" class="flex flex-col">
+        <section id="search-section" class="flex flex-col p-4">
             <label for="input-search" class="py-6 font-bold text-2xl">Búsqueda</label>
             <div id="div-input-text" class="border-b-2 border-white mb-4">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" name="input-search" id="input-search" placeholder="Ingresá tu búsqueda" class="text-xl p-2 bg-transparent border-none focus:outline-none">
+                <input type="text" name="input-search" id="input-search" placeholder="Ingresá tu búsqueda" class="text-2xl p-2 bg-transparent border-none focus:outline-none">
             </div>
-            <div class="flex justify-between flex-wrap font-bold w-full">
+            <div class="flex justify-between flex-wrap font-bold text-sm w-full">
                 <div class="my-2">
                     <label for="type-select" class="text-zinc-400">TIPO</label>
-                    <select name="type-select" id="type-select" class="border-white border-2 rounded bg-inherit">
+                    <select name="type-select" id="type-select" class="bg-inherit">
                         <option value="comics" class="bg-white text-black">COMICS</option>
                         <option value="characters" class="bg-white text-black">PERSONAJES</option>
                     </select>
                     <label for="sort-select" class="text-zinc-400">ORDEN</label>
-                    <select name="sort-select" id="sort-select" class="border-white border-2 rounded bg-inherit">
+                    <select name="sort-select" id="sort-select" class="bg-inherit">
                         <option value="a-to-z" class="bg-white text-black" >A/Z</option>
                         <option value="z-to-a" class="bg-white text-black" >Z/A</option>
                         <option value="newer" class="bg-white text-black" >MÁS RECIENTES</option>
                         <option value="older" class="bg-white text-black" >MÁS VIEJOS</option>
                     </select>
                 </div>
-                <button type="button" id="search-btn" class="border-white border-2 rounded p-1 m-1">
-                    Buscar
+                <button type="button" id="search-btn" class="border-white border-2 rounded bg-white text-black font-normal p-2 m-1">
+                    BUSCAR
                 </button>
             </div>
         </section>
@@ -50,15 +52,16 @@
             <div id="results" class="flex flex-wrap justify-center">
                 <!--inject data from JS-->
             </div>
-            <div id="pagination" class="m-10 flex justify-center font-medium">
-            <button id="first-page" class="button m-1"><i class="fa-solid fa-angles-left"></i></button>
-            <button id="previous-page" class="button m-1"><i class="fa-solid fa-angle-left"></i></button>
-            <p id="current-page" class="button m-1"></p>
-            <button id="next-page" class="button m-1"><i class="fa-solid fa-angle-right"></i></button>
-            <button id="last-page" class="button m-1"><i class="fa-solid fa-angles-right"></i></button>
-        </div>
+            <div id="pagination" class="m-4 flex justify-center font-medium text-red-600">
+                <button id="first-page" class="button m-1"><i class="fa-solid fa-angles-left"></i></button>
+                <button id="previous-page" class="button m-1"><i class="fa-solid fa-angle-left"></i></button>
+                <p id="current-page" class="button m-1"></p>
+                <button id="next-page" class="button m-1"><i class="fa-solid fa-angle-right"></i></button>
+                <button id="last-page" class="button m-1"><i class="fa-solid fa-angles-right"></i></button>
+            </div>
         </section>
-        <section id="comic-details" class="hidden mt-6 w-3/4">
+<!--section comic details-->
+        <section id="comic-details" class="hidden mt-6 w-full md:w-3/4">
             <div id="comic-details-content" class="flex flex-col">
                 <img id="comic-thumbnail" class="shadow-zinc-500/70 w-full h-full" alt="Comic Thumbnail">
                 <div class="flex flex-col ml-4">
@@ -66,12 +69,15 @@
                     <p id="comic-date" class="text-sm"></p>
                     <p id="comic-description" class="text-justify"></p>
                 </div>
-                <div id="comic-characters" class="flex flex-wrap justify-center mt-4"></div>
+                <div  class="flex flex-col justify-center mt-4">
+                    <p class='text-xl font-bold mb-2'>Personajes:</p>
+                    <div id="comic-characters" class="flex flex-wrap w-full"></div>
+                </div>
             </div>
-            <button id="back-btn" type="button"><i class="fa-solid fa-arrow-left-long"></i></button>
+            <button id="back-btn" type="button" class="m-2 p-2 text-red-600"><i class="fa-solid fa-arrow-left-long"></i></button>
         </section>
 <!--section character details-->
-        <section id="character-details" class="hidden mt-6 w-3/4">
+        <section id="character-details" class="hidden mt-6 w-full md:3/4">
             <div id="characters-details-content" class="flex flex-col">
                 <div class="flex">
                     <img id="character-thumbnail" class="shadow-zinc-500/70 w-full h-full" alt="Character Thumbnail">
@@ -80,9 +86,12 @@
                         <p id="character-description" class="text-justify"></p>
                     </div>
                 </div>
-                <div id="character-comics" class="flex flex-wrap justify-center mt-4"></div>
+                <div  class="flex flex-col justify-center mt-4">
+                    <p class='text-xl font-bold mb-2'>Comics:</p>
+                    <div id="character-comics" class="flex flex-wrap w-full"></div>
+                </div>
             </div>
-            <button id="back-to-results" type="button"><i class="fa-solid fa-arrow-left-long"></i></button>
+            <button id="back-to-results" type="button" class="m-2 p-2 text-red-600"><i class="fa-solid fa-arrow-left-long"></i></button>
         </section>
         
     </main>

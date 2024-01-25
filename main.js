@@ -74,17 +74,16 @@ const showComicDetails = (comic) => {
         .then(async (response) => {
             const characters = response.data.results[0].characters.items;
             if(characters.length > 0) {
-                $("#comic-characters").innerHTML = "<p class='text-xl font-bold mb-2'>Personajes:</p>";
                 for(const character of characters) {
                    const characterDetails = await getCharacterDetails(character.resourceURI.split('/').pop());
                    const characterThumbnail = characterDetails.data.results[0].thumbnail;
                    $("#comic-characters").innerHTML += `
-                   <div class="character-card" data-id="${characterDetails.data.results[0].id}">
-                     <img class="w-20 h-32" src="${characterThumbnail.path}.${characterThumbnail.extension}" alt="${characterDetails.data.results[0].name}">
-                     <p>${characterDetails.data.results[0].name}</p>
+                   <div class="character-card bg-neutral-950 w-32 h-64 m-2 text-center" data-id="${characterDetails.data.results[0].id}">
+                     <img class="h-48 border-b-4 border-red-600" src="${characterThumbnail.path}.${characterThumbnail.extension}" alt="${characterDetails.data.results[0].name}">
+                     <p class="mb-4 text-white text-sm">${characterDetails.data.results[0].name}</p>
                    </div>`
                 }
-                
+               
             } else {
                 $("#comic-characters").innerHTML = "<p>Sin personajes</p>";
             }
@@ -138,7 +137,6 @@ const showCharacterDetails = (characterId) => {
             $("#character-description").textContent = character.data.results[0].description || "Sin descripción disponible";
 
         //muestro tarj
-        $("#character-comics-container").innerHTML = "<p class='text-xl font-bold mb-2'>Comics:</p>"
 
         getCharacterComics(characterId)
             .then(async (response) => {
@@ -146,13 +144,13 @@ const showCharacterDetails = (characterId) => {
                 for(const comic of comics) {
                     const comicThumbnail = comic.thumbnail;
                     //esto no me funciona porque estoy entrando mal al obj, chequear doc de API
-                    $("#character-comic-container").innerHTML += `
-                    <div class="comic-card" data-id="${comic.id}">
-                        <img class="w-20 h-32" src="${comicThumbnail.path}.${comicThumbnail.extension}" alt="${comic.title}">
-                        <p>${comic.title}</p>
+                    $("#character-comics").innerHTML += `
+                    <div class="comic-card w-32 h-64 m-2" data-id="${comic.id}">
+                        <img class="w-full h-48" src="${comicThumbnail.path}.${comicThumbnail.extension}" alt="${comic.title}">
+                        <p class="text-xs mb-4">${comic.title}</p>
                     </div>`;
                 }
-
+//<p>${comic.title}</p>
                 //agrego el atributo por la clase comic-card
                 document.querySelectorAll('.comic-card').forEach(card => {
                     card.addEventListener('click', () => {
@@ -324,6 +322,9 @@ const toggleDarkMode = () => {
 
     $("#page-body").classList.toggle("bg-black");
     $("#page-body").classList.toggle("bg-white");
+    $("#search-btn").classList.toggle("bg-white");
+    $("#search-btn").classList.toggle("bg-black");
+
 
 
     elementsToToggle.forEach(element => {
@@ -331,7 +332,7 @@ const toggleDarkMode = () => {
         document.querySelector(element).classList.toggle("text-white");
     });
 
-    const bordersToToggle = ["#search-btn", "#type-select", "#sort-select", "#div-input-text"];
+    const bordersToToggle = ["#div-input-text"];
 
     bordersToToggle.forEach(element => {
         document.querySelector(element).classList.toggle("border-white");
