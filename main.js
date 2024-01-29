@@ -74,7 +74,7 @@ $("#results").addEventListener("click", async (event) => {
             } else {
                 try {
                     await showComicDetails(selectedData);
-                    console.log("soy el id del elemento:", id);
+                    //console.log("soy el id del elemento:", id);
                 } catch (error) {
                     console.error("error cuando muestro detalle de comic", error);
                 }
@@ -87,35 +87,50 @@ $("#results").addEventListener("click", async (event) => {
 
 
 const showComicDetails = async (comic) => {
-    if (!comic || !comic.thumbnail || !comic.dates || !comic.dates[0]) {
+    if (!comic || !comic.thumbnail || !comic.dates || !comic.dates[0].date) {
         console.error('Invalid comic details:', comic);
         return;
     }
+
+    const dateString = comic.dates[0].date;
+    console.log(comic.dates[0].date)
+
+    const year = dateString.slice(0, 4);
+    const month = dateString.slice(5, 7);
+    const day = dateString.slice(8, 10);
+
+    const formattedDate = `${day}-${month}-${year}`;
+
+    const creatorsNames = comic.creators.items.map(creator => creator.name).join(',');
 
     //actualizo los elementos
     $("#comic-thumbnail").src = `${comic.thumbnail.path}.${comic.thumbnail.extension}`;
     $("#comic-thumbnail").classList.add("w-52", "h-64");
     $("#comic-title").textContent = comic.title;
-    $("#comic-date").textContent = `Fecha de publicación: ${comic.dates[0].date}`;
-    $("#comic-description").textContent = comic.description || "Sin descripción disponible";
+    $("#comic-date").textContent = formattedDate;
+    $("#comic-description").textContent = comic.description || "";
+    $("#comic-creators").textContent = creatorsNames;
+    console.log(creatorsNames);
 
     try {
         await getComicDetails(comic.id);
         getComicDetails(comic.id)
             .then(async (response) => {
                 const characters = response.data.results[0].characters.items;
+                $("#comic-characters").innerHTML = '';
                 if (characters.length >= 1) {
                     for (const character of characters) {
                         const characterDetails = await getCharacterDetails(character.resourceURI.split('/').pop());
                         const characterThumbnail = characterDetails.data.results[0].thumbnail;
+                        
                         $("#comic-characters").innerHTML += `
-                   <div class="character-card bg-neutral-950 w-32 h-64 m-2 text-center" data-id="${characterDetails.data.results[0].id}">
+                   <div class="character-card bg-neutral-950 w-32 h-64 m-6 text-center" data-id="${characterDetails.data.results[0].id}">
                      <img class="h-48 border-b-4 border-red-600" src="${characterThumbnail.path}.${characterThumbnail.extension}" alt="${characterDetails.data.results[0].name}">
-                     <p class="mb-4 text-white text-sm">${characterDetails.data.results[0].name}</p>
+                     <p class="my-6 text-white text-sm">${characterDetails.data.results[0].name}</p>
                    </div>`
                     }
 
-                } else {
+                } else if (characters.length = 0){
                     $("#comic-characters").innerHTML = "<p>Sin personajes</p>";
                 }
 
@@ -177,11 +192,11 @@ const showCharacterDetails = (characterId) => {
             getCharacterComics(characterId)
                 .then(async (response) => {
                     const comics = response.data.results;
+                    $("#character-comics").innerHTML = '';
                     for (const comic of comics) {
                         const comicThumbnail = comic.thumbnail;
-                        //esto no me funciona porque estoy entrando mal al obj, chequear doc de API
                         $("#character-comics").innerHTML += `
-                    <div class="comic-card w-32 h-64 m-2" data-id="${comic.id}">
+                    <div class="comic-card w-32 h-64 m-6" data-id="${comic.id}">
                         <img class="w-full h-48" src="${comicThumbnail.path}.${comicThumbnail.extension}" alt="${comic.title}">
                         <p class="text-xs mb-4">${comic.title}</p>
                     </div>`;
@@ -211,7 +226,7 @@ const getCharacterDetails = async (characterId) => {
     try {
         const url = buildUrlMarvel(`characters/${characterId}`);
         const response = await fetchMarvel(url);
-        console.log("response de characterDetails:", response);
+        //console.log("response de characterDetails:", response);
         return response;
     } catch (error) {
         console.error("error character details fetching: ", error);
@@ -225,7 +240,11 @@ $("#back-to-results").addEventListener("click", () => {
     $("#character-details").classList.add("hidden");
 })
 
-
+$("#back-btn").addEventListener("click", () => {
+    console.log("funciona el btn back");
+    $("#results-container").classList.remove("hidden");
+    $("#comic-details").classList.add("hidden");
+});
 
 /* PAGINATION */
 const updatePageInfo = () => {
@@ -278,7 +297,6 @@ $("#search-btn").addEventListener("click", async () => {
     }
 });
 
-/* PAGINATION EVENTS */
 $("#first-page").addEventListener("click", async () => {
     page = 1;
     offset = (page - 1) * itemsPerPage;
@@ -330,22 +348,20 @@ $("#last-page").addEventListener("click", async () => {
 
 /* change mode */
 const toggleDarkMode = () => {
-    const elementsToToggle = ["#page-body", "#results-container", "#search-btn", "#type-select", "#sort-select", "#div-input-text", "#sun-light", "#moon-dark"];
 
-    $("#page-body").classList.toggle("bg-black");
-    $("#page-body").classList.toggle("bg-white");
-    $("#search-btn").classList.toggle("bg-white");
-    $("#search-btn").classList.toggle("bg-black");
-
-
-
+    const elementsToToggle = ["#page-body",  "#search-btn", "#footer", "#pagination"];
     elementsToToggle.forEach(element => {
         document.querySelector(element).classList.toggle("text-black");
         document.querySelector(element).classList.toggle("text-white");
     });
 
+    const bgToToggle = ["#page-body", "#search-btn", "#footer", "#first-page", "#previous-page", "#current-page", "#next-page", "#last-page"];
+    bgToToggle.forEach(element => {
+        document.querySelector(element).classList.toggle("bg-black");
+        document.querySelector(element).classList.toggle("bg-white");
+    });
+   
     const bordersToToggle = ["#div-input-text"];
-
     bordersToToggle.forEach(element => {
         document.querySelector(element).classList.toggle("border-white");
         document.querySelector(element).classList.toggle("border-black");
@@ -363,11 +379,6 @@ $("#moon-dark").addEventListener("click", () => {
     toggleDarkMode();
 });
 
-$("#back-btn").addEventListener("click", () => {
-    console.log("funciona el btn back");
-    $("#results-container").classList.remove("hidden");
-    $("#comic-details").classList.add("hidden");
-});
 
 /* INITIALIZE APP */
 window.addEventListener("load", async () => {

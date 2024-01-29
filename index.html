@@ -20,7 +20,7 @@
     <div class="w-full h-96">
         <img class="w-full h-full object-cover" src="https://www.timeoutdubai.com/cloud/timeoutdubai/2021/09/11/UdyrLagy-imgworldsofadventuremarvelspiderman_1.jpg" alt="marvel-photo">
     </div>
-    <main class="p-4" id="main">
+    <main class="m-4" id="main">
         <section id="search-section" class="flex flex-col p-4">
             <label for="input-search" class="py-6 font-bold text-2xl">Búsqueda</label>
             <div id="div-input-text" class="border-b-2 border-white mb-4">
@@ -42,32 +42,33 @@
                         <option value="older" class="bg-white text-black" >MÁS VIEJOS</option>
                     </select>
                 </div>
-                <button type="button" id="search-btn" class="border-white border-2 rounded bg-white text-black font-normal p-2 m-1">
+                <button type="button" id="search-btn" class="border-white border-2 rounded bg-white font-normal p-2 m-1 text-black">
                     BUSCAR
                 </button>
             </div>
         </section>
-        <section id="results-container" class="flex flex-col p-2">
-            <h1 class="font-bold text 2xl py-4 px-1 my-6" id="count-results"></h1>
-            <div id="results" class="flex flex-wrap justify-center">
+        <section id="results-container" class="flex flex-col py-6">
+            <h1 class="font-bold text 2xl py-4 px-6 my-6" id="count-results"></h1>
+            <div id="results" class="flex flex-wrap justify-center ">
                 <!--inject data from JS-->
             </div>
-            <div id="pagination" class="m-4 flex justify-center font-medium text-red-600">
-                <button id="first-page" class="button m-1"><i class="fa-solid fa-angles-left"></i></button>
-                <button id="previous-page" class="button m-1"><i class="fa-solid fa-angle-left"></i></button>
-                <p id="current-page" class="button m-1"></p>
-                <button id="next-page" class="button m-1"><i class="fa-solid fa-angle-right"></i></button>
-                <button id="last-page" class="button m-1"><i class="fa-solid fa-angles-right"></i></button>
+            <div id="pagination" class="mx-4 mb-6 flex justify-center font-medium text-black">
+                <button id="first-page" class="button m-1 p-2 bg-white"><i class="fa-solid fa-angles-left"></i></button>
+                <button id="previous-page" class="button m-1 p-2 bg-white"><i class="fa-solid fa-angle-left"></i></button>
+                <p id="current-page" class="button m-1 p-2 bg-white"></p>
+                <button id="next-page" class="button m-1 p-2 bg-white"><i class="fa-solid fa-angle-right"></i></button>
+                <button id="last-page" class="button m-1 p-2 bg-white"><i class="fa-solid fa-angles-right"></i></button>
             </div>
         </section>
 <!--section comic details-->
-        <section id="comic-details" class="hidden mt-6 w-full md:w-3/4">
+        <section id="comic-details" class="hidden mt-6 w-full">
             <div id="comic-details-content" class="flex flex-col">
                 <img id="comic-thumbnail" class="shadow-zinc-500/70 w-full h-full" alt="Comic Thumbnail">
                 <div class="flex flex-col ml-4">
                     <h2 id="comic-title" class="text-2xl font-bold my-2"></h2>
-                    <p id="comic-date" class="text-sm"></p>
-                    <p id="comic-description" class="text-justify"></p>
+                    <div  class="text-sm"><h1 class="font-black mb-2">Fecha de lanzamiento:</h1><p id="comic-date"></p></div>
+                    <p  id="comic-description" class="text-justify mb-2"></p>
+                    <div  class="text-sm"><h1 class="font-black mb-2">Guionistas:</h1><p id="comic-creators"></p></div>
                 </div>
                 <div  class="flex flex-col justify-center mt-4">
                     <p class='text-xl font-bold mb-2'>Personajes:</p>
@@ -77,7 +78,7 @@
             <button id="back-btn" type="button" class="m-2 p-2 text-red-600"><i class="fa-solid fa-arrow-left-long"></i></button>
         </section>
 <!--section character details-->
-        <section id="character-details" class="hidden mt-6 w-full md:3/4">
+        <section id="character-details" class="hidden mt-6 w-full">
             <div id="characters-details-content" class="flex flex-col">
                 <div class="flex">
                     <img id="character-thumbnail" class="shadow-zinc-500/70 w-full h-full" alt="Character Thumbnail">
@@ -93,8 +94,10 @@
             </div>
             <button id="back-to-results" type="button" class="m-2 p-2 text-red-600"><i class="fa-solid fa-arrow-left-long"></i></button>
         </section>
-        
     </main>
+    <footer id="footer" class="bg-white text-black w-full h-24 justify-center">
+            <p class="flex items-center justify-center h-full font-bold">Hecho con<i class="fa-solid fa-heart text-red-600 mx-2"></i> por Luna Agustina Bath </p>
+        </footer>
     <script src="main.js"></script>
 </body>
 </html>
