@@ -287,7 +287,7 @@ $("#search-btn").addEventListener("click", async () => {
         );
         console.log("datos filtrados", filteredData);
 
-        $("#count-results").innerHTML = `Resultados : ${filteredData.length}`
+        $("#count-results").innerHTML = `Resultados : ${marvelData.total}`
 
         printDataMarvel(type, filteredData);
         updatePageInfo();
