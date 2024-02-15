@@ -14,8 +14,12 @@ let offset = 0;
 
 
 /* construyo la URL */
-const buildUrlMarvel = (recurso, orderBy = '') => {
-    return `${cleanUrl}${recurso}?${ts}${publicKey}${hash}${orderBy}`;
+const buildUrlMarvel = (recurso, orderBy) => {
+    if(orderBy) {
+        return `${cleanUrl}${recurso}?${ts}${publicKey}${hash}${orderBy}`;
+    } else {
+        return `${cleanUrl}${recurso}?${ts}${publicKey}${hash}`;
+    }
 };
 
 /* construyo los searchParams */
@@ -41,32 +45,30 @@ const getMarvel = async (recurso, offset, itemsPerPage) => {
 const printDataMarvel = (recurso, data) => {
     $("#results").innerHTML = ``;
 
-
-        for (const item of data) {
-            let thumbnail = item.thumbnail.path + "." + item.thumbnail.extension; /* NO FUNCIONAN LOS FOCUS*/
-            $("#results").innerHTML += `
-            <div tabindex="0" class="flex flex-col font-semibold w-56 h-100 m-2 p-2" data-id="${item.id}">
-            <div class="h-2/3  :focus:translate-y-[5]">
-                <img class="shadow-lg shadow-zinc-500/70 h-full w-full" src="${thumbnail}" alt="img-${recurso}">
-            </div>
-            <div class="text-center mt-6 ">
-                <h1 class="text-sm :focus:text-red-600">${recurso === 'characters' ? item.name : item.title}</h1>
-            </div>
-            </div>
-            `;
-            //console.log(item);
-        }
-
+    for (const item of data) {
+        let thumbnail = item.thumbnail.path + "." + item.thumbnail.extension; /* NO FUNCIONAN LOS FOCUS*/
+        $("#results").innerHTML += `
+        <div tabindex="0" class="flex flex-col font-semibold w-56 h-100 m-2 p-2" data-id="${item.id}">
+        <div class="h-2/3  :focus:translate-y-[5]">
+            <img class="shadow-lg shadow-zinc-500/70 h-full w-full" src="${thumbnail}" alt="img-${recurso}">
+        </div>
+        <div class="text-center mt-6 ">
+            <h1 class="text-sm :focus:text-red-600">${recurso === 'characters' ? item.name : item.title}</h1>
+        </div>
+        </div>
+        `;
+        //console.log(item);
+    }
 };
 
 
 $("#results").addEventListener("click", async (event) => {
     const element = event.target.closest(".flex");
-    console.log("soy el elemento :", element);
+    //console.log("soy el elemento :", element);
     if (element) {
         const id = element.getAttribute("data-id");
         const selectedData = marvelData.results.find((data) => data.id == id);
-        console.log("selected comic dada", selectedData);
+        //console.log("selected comic dada", selectedData);
         if (selectedData) {
             if (selectedData.resourceURI.includes('characters')) {
                 showCharacterDetails(id);
@@ -93,7 +95,7 @@ const showComicDetails = async (comic) => {
     }
 
     const dateString = comic.dates[0].date;
-    console.log(comic.dates[0].date)
+    //console.log(comic.dates[0].date)
 
     const year = dateString.slice(0, 4);
     const month = dateString.slice(5, 7);
@@ -110,7 +112,7 @@ const showComicDetails = async (comic) => {
     $("#comic-date").textContent = formattedDate;
     $("#comic-description").textContent = comic.description || "";
     $("#comic-creators").textContent = creatorsNames;
-    console.log(creatorsNames);
+    //console.log(creatorsNames);
 
     try {
         await getComicDetails(comic.id);
@@ -122,7 +124,7 @@ const showComicDetails = async (comic) => {
                     for (const character of characters) {
                         const characterDetails = await getCharacterDetails(character.resourceURI.split('/').pop());
                         const characterThumbnail = characterDetails.data.results[0].thumbnail;
-                        
+
                         $("#comic-characters").innerHTML += `
                    <div class="character-card bg-neutral-950 w-32 h-64 m-6 text-center" data-id="${characterDetails.data.results[0].id}">
                      <img class="h-48 border-b-4 border-red-600" src="${characterThumbnail.path}.${characterThumbnail.extension}" alt="${characterDetails.data.results[0].name}">
@@ -130,7 +132,7 @@ const showComicDetails = async (comic) => {
                    </div>`
                     }
 
-                } else if (characters.length = 0){
+                } else if (characters.length = 0) {
                     $("#comic-characters").innerHTML = "<p>Sin personajes</p>";
                 }
 
@@ -251,6 +253,25 @@ const updatePageInfo = () => {
     $("#current-page").textContent = `pag ${page}`;
 };
 
+const fetchMarvelSearchConut = async (type, orderBy, searchInput) => {
+    let url;
+    if (type === 'characters') {
+        url = buildUrlMarvel(type, orderBy) + `&nameStartsWith=${encodeURIComponent(searchInput)}`;
+    } else {
+        url = buildUrlMarvel(type, orderBy) + `&titleStartsWith=${encodeURIComponent(searchInput)}`;
+    }
+    try {
+        const response = await fetchMarvel(url);
+        //console.log(response)
+        return response;
+
+    } catch (error) {
+        console.error("Error fetching Marvel search count:", error);
+        throw error;
+    }
+};
+
+
 /* SEARCH EVENTS*/
 $("#search-btn").addEventListener("click", async () => {
     $("#results-container").classList.remove("hidden");
@@ -261,36 +282,40 @@ $("#search-btn").addEventListener("click", async () => {
     const sort = $("#sort-select").value;
     const searchInput = $("#input-search").value;
     let orderBy = '';
+    let filteredData = [];//la declaro
 
     offset = 0; // lo vuelvo a reiniciar
 
     try {
-        if(type === 'characters'){
-            orderBy = (sort === "a-to-z") ? '&orderBy=name' : (sort === "z-to-a") ? '&orderBy=-name': '';
+        if (type === 'characters') {
+            orderBy = (sort === "a-to-z") ? '&orderBy=name' : (sort === "z-to-a") ? '&orderBy=-name' : '';
             //deshabilito ordenar por fecha
             $("#sort-select option[value='newer']").disabled = true;
             $("#sort-select option[value='older']").disabled = true;
 
-        }else if(type === 'comics'){
+        } else if (type === 'comics') {
             orderBy = (sort === "a-to-z") ? '&orderBy=title' : (sort === "z-to-a") ? '&orderBy=-title' : (sort === 'newer') ? '&orderBy=-modified' : (sort === 'older') ? '&orderBy=modified' : '';
-            
         }
+
+
         const url = buildUrlMarvel(type, orderBy) + buildSearchParams(offset, itemsPerPage);
         const response = await fetchMarvel(url);
-        console.log("datos de la Api", response);
         marvelData = response.data;
-        console.log("marvelData", marvelData);
 
-
-        const filteredData = marvelData.results.filter(item =>
+        filteredData = marvelData.results.filter(item =>
             (item.name || '').toLowerCase().includes(searchInput.toLowerCase()) || (item.title || '').toLowerCase().includes(searchInput.toLowerCase())
         );
         console.log("datos filtrados", filteredData);
 
-        $("#count-results").innerHTML = `Resultados : ${marvelData.total}`
+        const totalCount = await fetchMarvelSearchConut(type, orderBy, searchInput);
+        if (searchInput.length > 0) {
+            $("#count-results").textContent = `Resultados: ${totalCount.data.total}`;
+        } else {
+            $("#count-results").textContent = `Resultados: ${marvelData.total}`;
+        }
 
         printDataMarvel(type, filteredData);
-        updatePageInfo();
+        updatePageInfo(filteredData);
 
     } catch (error) {
         console.log("error fetching", error)
@@ -349,7 +374,7 @@ $("#last-page").addEventListener("click", async () => {
 /* change mode */
 const toggleDarkMode = () => {
 
-    const elementsToToggle = ["#page-body",  "#search-btn", "#footer", "#pagination"];
+    const elementsToToggle = ["#page-body", "#search-btn", "#footer", "#pagination"];
     elementsToToggle.forEach(element => {
         document.querySelector(element).classList.toggle("text-black");
         document.querySelector(element).classList.toggle("text-white");
@@ -360,7 +385,7 @@ const toggleDarkMode = () => {
         document.querySelector(element).classList.toggle("bg-black");
         document.querySelector(element).classList.toggle("bg-white");
     });
-   
+
     const bordersToToggle = ["#div-input-text"];
     bordersToToggle.forEach(element => {
         document.querySelector(element).classList.toggle("border-white");
