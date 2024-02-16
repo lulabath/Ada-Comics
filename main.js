@@ -151,6 +151,7 @@ const showComicDetails = async (comic) => {
 
     //manejo las vistas
     $("#results-container").classList.add("hidden");
+    $("#character-details").classList.add("hidden");
     $("#comic-details").classList.remove("hidden");
 };
 
@@ -208,7 +209,13 @@ const showCharacterDetails = (characterId) => {
                     document.querySelectorAll('.comic-card').forEach(card => {
                         card.addEventListener('click', () => {
                             const comicId = card.getAttribute('data-id');
-                            showComicDetails(comicId);
+                            const selectedComic = comics.find(c => c.id == comicId); // así puedo buscar el comic correspondiente en el array 
+                            if(selectedComic){
+                                showComicDetails(selectedComic);
+                            }else {
+                                console.error('Comic not found');
+                            }
+                            
                         });
                     });
                 });
