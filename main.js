@@ -14,12 +14,15 @@ let offset = 0;
 
 
 /* construyo la URL */
-const buildUrlMarvel = (recurso, orderBy) => {
-    if(orderBy) {
-        return `${cleanUrl}${recurso}?${ts}${publicKey}${hash}${orderBy}`;
-    } else {
-        return `${cleanUrl}${recurso}?${ts}${publicKey}${hash}`;
+const buildUrlMarvel = (recurso, orderBy, startsWith) => {
+    let url = `${cleanUrl}${recurso}?${ts}${publicKey}${hash}`;
+    if (startsWith) {
+        url += (recurso === 'characters') ? `&nameStartsWith=${startsWith}` : `&titleStartsWith=${startsWith}`;
     }
+    if (orderBy) {
+        url += `&orderBy=${orderBy}`;
+    }
+    return url;
 };
 
 /* construyo los searchParams */
@@ -72,7 +75,7 @@ $("#results").addEventListener("click", async (event) => {
         if (selectedData) {
             if (selectedData.resourceURI.includes('characters')) {
                 showCharacterDetails(id);
-                console.log("soy el id del elemento:", id);
+                //console.log("soy el id del elemento:", id);
             } else {
                 try {
                     await showComicDetails(selectedData);
@@ -250,7 +253,7 @@ $("#back-to-results").addEventListener("click", () => {
 })
 
 $("#back-btn").addEventListener("click", () => {
-    console.log("funciona el btn back");
+    //console.log("funciona el btn back");
     $("#results-container").classList.remove("hidden");
     $("#comic-details").classList.add("hidden");
 });
@@ -260,24 +263,21 @@ const updatePageInfo = () => {
     $("#current-page").textContent = `pag ${page}`;
 };
 
-const fetchMarvelSearchConut = async (type, orderBy, searchInput) => {
+const fetchMarvelSearchConut = async (type, orderBy, searchInput, startsWith) => {
     let url;
     if (type === 'characters') {
-        url = buildUrlMarvel(type, orderBy) + `&nameStartsWith=${encodeURIComponent(searchInput)}`;
+        url = buildUrlMarvel(type, orderBy, startsWith);
     } else {
-        url = buildUrlMarvel(type, orderBy) + `&titleStartsWith=${encodeURIComponent(searchInput)}`;
+        url = buildUrlMarvel(type, orderBy, startsWith);
     }
     try {
         const response = await fetchMarvel(url);
-        //console.log(response)
         return response;
-
     } catch (error) {
         console.error("Error fetching Marvel search count:", error);
         throw error;
     }
 };
-
 
 /* SEARCH EVENTS*/
 $("#search-btn").addEventListener("click", async () => {
@@ -289,34 +289,30 @@ $("#search-btn").addEventListener("click", async () => {
     const sort = $("#sort-select").value;
     const searchInput = $("#input-search").value;
     let orderBy = '';
-    let filteredData = [];//la declaro
+    let startsWith = '';
 
-    offset = 0; // lo vuelvo a reiniciar
+    offset = 0;
 
     try {
         if (type === 'characters') {
-            orderBy = (sort === "a-to-z") ? '&orderBy=name' : (sort === "z-to-a") ? '&orderBy=-name' : '';
-            //deshabilito ordenar por fecha
-            $("#sort-select option[value='newer']").disabled = true;
-            $("#sort-select option[value='older']").disabled = true;
-
+            orderBy = (sort === "a-to-z") ? 'name' : (sort === "z-to-a") ? '-name' : '';
+            startsWith = (searchInput.length > 0) ? searchInput.charAt(0) : '';
         } else if (type === 'comics') {
-            orderBy = (sort === "a-to-z") ? '&orderBy=title' : (sort === "z-to-a") ? '&orderBy=-title' : (sort === 'newer') ? '&orderBy=-modified' : (sort === 'older') ? '&orderBy=modified' : '';
+            orderBy = (sort === "a-to-z") ? 'title' : (sort === "z-to-a") ? '-title' : (sort === 'newer') ? '-modified' : (sort === 'older') ? 'modified' : '';
+            startsWith = (searchInput.length > 0) ? searchInput.charAt(0) : '';
         }
 
-
-        const url = buildUrlMarvel(type, orderBy) + buildSearchParams(offset, itemsPerPage);
+        const url = buildUrlMarvel(type, orderBy, startsWith) + buildSearchParams(offset, itemsPerPage);
         const response = await fetchMarvel(url);
         marvelData = response.data;
 
-        filteredData = marvelData.results.filter(item =>
-            (item.name || '').toLowerCase().includes(searchInput.toLowerCase()) || (item.title || '').toLowerCase().includes(searchInput.toLowerCase())
-        );
-        console.log("datos filtrados", filteredData);
-
-        const totalCount = await fetchMarvelSearchConut(type, orderBy, searchInput);
+        let filteredData = marvelData.results;
         if (searchInput.length > 0) {
+            const totalCount = await fetchMarvelSearchConut(type, orderBy, searchInput, startsWith);
             $("#count-results").textContent = `Resultados: ${totalCount.data.total}`;
+            filteredData = marvelData.results.filter(item =>
+                (item.name || '').toLowerCase().includes(searchInput.toLowerCase()) || (item.title || '').toLowerCase().includes(searchInput.toLowerCase())
+            );
         } else {
             $("#count-results").textContent = `Resultados: ${marvelData.total}`;
         }
@@ -325,7 +321,7 @@ $("#search-btn").addEventListener("click", async () => {
         updatePageInfo(filteredData);
 
     } catch (error) {
-        console.log("error fetching", error)
+        console.error("error fetching", error)
     }
 });
 
@@ -336,7 +332,7 @@ $("#first-page").addEventListener("click", async () => {
     marvelData = newData.data;
     printDataMarvel($("#type-select").value, marvelData.results);
     updatePageInfo();
-    console.log('soy first');
+    //console.log('soy first');
 });
 
 $("#previous-page").addEventListener("click", async () => {
@@ -348,7 +344,7 @@ $("#previous-page").addEventListener("click", async () => {
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
     }
-    console.log('soy prev');
+    //console.log('soy prev');
 });
 
 $("#next-page").addEventListener("click", async () => {
@@ -361,12 +357,12 @@ $("#next-page").addEventListener("click", async () => {
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
     }
-    console.log('soy next');
+    //console.log('soy next');
 });
 
 $("#last-page").addEventListener("click", async () => {
     const lastPage = Math.ceil(marvelData.total / itemsPerPage);
-    console.log(marvelData.total)
+    //console.log(marvelData.total)
     if (page < lastPage) {
         page = lastPage;
         offset = (page - 1) * itemsPerPage;
@@ -375,7 +371,7 @@ $("#last-page").addEventListener("click", async () => {
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
     }
-    console.log('soy last');
+    //console.log('soy last');
 });
 
 /* change mode */
