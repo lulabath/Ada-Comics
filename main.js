@@ -2,10 +2,11 @@
 const $ = (selector) => document.querySelector(selector);
 
 const cleanUrl = `http://gateway.marvel.com/v1/public/`
-let ts = `ts=1`
 const publicKey = "&apikey=6acd8c25d84392110b6f02e68799aac1"
 const hash = "&hash=bf65d7f2a26f6d85116463c0b81b4273"
-
+let ts = `ts=1`
+let startsWithFilter = ''; // acá puedo almacenar el filtro del input text
+let orderBy = '';
 let marvelData;
 let page = 1;
 let itemsPerPage = 20;
@@ -272,7 +273,8 @@ const fetchMarvelSearchConut = async (type, orderBy, searchInput, startsWith) =>
     }
     try {
         const response = await fetchMarvel(url);
-        return response;
+        totalSearchResults = response.data.total;  //así almaceno el total de los resultados
+        return totalSearchResults;
     } catch (error) {
         console.error("Error fetching Marvel search count:", error);
         throw error;
@@ -302,14 +304,16 @@ $("#search-btn").addEventListener("click", async () => {
             startsWith = (searchInput.length > 0) ? searchInput.charAt(0) : '';
         }
 
+        startsWithFilter = searchInput.charAt(0);
+
         const url = buildUrlMarvel(type, orderBy, startsWith) + buildSearchParams(offset, itemsPerPage);
         const response = await fetchMarvel(url);
         marvelData = response.data;
 
         let filteredData = marvelData.results;
         if (searchInput.length > 0) {
-            const totalCount = await fetchMarvelSearchConut(type, orderBy, searchInput, startsWith);
-            $("#count-results").textContent = `Resultados: ${totalCount.data.total}`;
+            totalSearchResults = await fetchMarvelSearchConut(type, orderBy, searchInput, startsWith);
+            $("#count-results").textContent = `Resultados: ${totalSearchResults}`;
             filteredData = marvelData.results.filter(item =>
                 (item.name || '').toLowerCase().includes(searchInput.toLowerCase()) || (item.title || '').toLowerCase().includes(searchInput.toLowerCase())
             );
@@ -318,7 +322,7 @@ $("#search-btn").addEventListener("click", async () => {
         }
 
         printDataMarvel(type, filteredData);
-        updatePageInfo(filteredData);
+        updatePageInfo();
 
     } catch (error) {
         console.error("error fetching", error)
@@ -330,6 +334,12 @@ $("#first-page").addEventListener("click", async () => {
     offset = (page - 1) * itemsPerPage;
     const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
     marvelData = newData.data;
+
+
+    const url = buildUrlMarvel($("#type-select").value, orderBy, startsWithFilter) + buildSearchParams(offset, itemsPerPage);
+    const response = await fetchMarvel(url);
+    marvelData = response.data;
+
     printDataMarvel($("#type-select").value, marvelData.results);
     updatePageInfo();
     //console.log('soy first');
@@ -341,6 +351,11 @@ $("#previous-page").addEventListener("click", async () => {
         offset = (page - 1) * itemsPerPage;
         const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
         marvelData = newData.data;
+
+        const url = buildUrlMarvel($("#type-select").value, orderBy, startsWithFilter) + buildSearchParams(offset, itemsPerPage);
+        const response = await fetchMarvel(url);
+        marvelData = response.data; 
+
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
     }
@@ -354,6 +369,11 @@ $("#next-page").addEventListener("click", async () => {
         offset = (page - 1) * itemsPerPage;
         const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
         marvelData = newData.data;
+
+        const url = buildUrlMarvel($("#type-select").value, orderBy, startsWithFilter) + buildSearchParams(offset, itemsPerPage);
+        const response = await fetchMarvel(url);
+        marvelData = response.data;
+
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
     }
@@ -368,6 +388,11 @@ $("#last-page").addEventListener("click", async () => {
         offset = (page - 1) * itemsPerPage;
         const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
         marvelData = newData.data;
+
+        const url = buildUrlMarvel($("#type-select").value, orderBy, startsWithFilter) + buildSearchParams(offset, itemsPerPage);
+        const response = await fetchMarvel(url);
+        marvelData = response.data;
+
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
     }
@@ -414,6 +439,7 @@ window.addEventListener("load", async () => {
         const url = buildUrlMarvel('comics') + buildSearchParams(offset, itemsPerPage);
         const response = await fetchMarvel(url);
         marvelData = response.data;
+        $("#count-results").textContent = `Resultados: ${marvelData.total}`;
         printDataMarvel('comics', marvelData.results);
         updatePageInfo();
     } catch (error) {
