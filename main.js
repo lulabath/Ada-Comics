@@ -329,6 +329,26 @@ $("#search-btn").addEventListener("click", async () => {
     }
 });
 
+const updatePaginationButton = () => {
+    const lastPage = Math.ceil(marvelData.total / itemsPerPage);
+    if(page === 1) {
+        $("#first-page").classList.add('hidden');
+        $("#previous-page").classList.add('hidden');
+    } else {
+        $("#first-page").classList.remove('hidden');
+        $("#first-page").classList.remove('hidden');
+    }
+    
+    if (page === lastPage) {
+        $("#next-page").classList.add('hidden');
+        $("#last-page").classList.add('hidden');
+    } else {
+        $("#next-page").classList.remove('hidden');
+        $("#last-page").classList.remove('hidden');
+    }
+}
+
+
 $("#first-page").addEventListener("click", async () => {
     page = 1;
     offset = (page - 1) * itemsPerPage;
@@ -342,6 +362,7 @@ $("#first-page").addEventListener("click", async () => {
 
     printDataMarvel($("#type-select").value, marvelData.results);
     updatePageInfo();
+    updatePaginationButton();
     //console.log('soy first');
 });
 
@@ -358,6 +379,7 @@ $("#previous-page").addEventListener("click", async () => {
 
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
+        updatePaginationButton();
     }
     //console.log('soy prev');
 });
@@ -376,6 +398,7 @@ $("#next-page").addEventListener("click", async () => {
 
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
+        updatePaginationButton();
     }
     //console.log('soy next');
 });
@@ -395,6 +418,7 @@ $("#last-page").addEventListener("click", async () => {
 
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
+        updatePaginationButton();
     }
     //console.log('soy last');
 });
@@ -442,6 +466,7 @@ window.addEventListener("load", async () => {
         $("#count-results").textContent = `Resultados: ${marvelData.total}`;
         printDataMarvel('comics', marvelData.results);
         updatePageInfo();
+        updatePaginationButton();
     } catch (error) {
         console.error("Error fetching Marvel data:", error);
     }
