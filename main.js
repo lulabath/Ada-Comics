@@ -12,11 +12,10 @@ let page = 1;
 let itemsPerPage = 20;
 let offset = 0;
 
-/* construyo la URL */
 const buildUrlMarvel = (recurso, orderBy, startsWith) => {
     let url = `${cleanUrl}${recurso}?${ts}${publicKey}${hash}`;
     if (startsWith) {
-        url +=  (recurso === 'characters') ? `&nameStartsWith=${startsWith}` : `&titleStartsWith=${startsWith}`;
+        url += (recurso === 'characters') ? `&nameStartsWith=${startsWith}` : `&titleStartsWith=${startsWith}`;
     }
     if (orderBy) {
         url += `&orderBy=${orderBy}`;
@@ -24,14 +23,10 @@ const buildUrlMarvel = (recurso, orderBy, startsWith) => {
     return url;
 };
 
-
-
-/* construyo los searchParams */
 const buildSearchParams = (offset, itemsPerPage) => {
     return `&offset=${offset}&limit=${itemsPerPage}`;
 };
 
-/* llamado a la Api */
 const fetchMarvel = async (url) => {
     const response = await fetch(url);
     const data = await response.json();
@@ -84,6 +79,7 @@ const showComicDetails = async (comic) => {
         console.error('Invalid comic details:', comic);
         return;
     }
+
     const dateString = comic.dates[0].date;
     const year = dateString.slice(0, 4);
     const month = dateString.slice(5, 7);
@@ -182,7 +178,7 @@ const showCharacterDetails = (characterId) => {
                     document.querySelectorAll('.comic-card').forEach(card => {
                         card.addEventListener('click', () => {
                             const comicId = card.getAttribute('data-id');
-                            const selectedComic = comics.find(c => c.id == comicId); // así puedo buscar el comic correspondiente en el array 
+                            const selectedComic = comics.find(c => c.id == comicId);
                             if (selectedComic) {
                                 showComicDetails(selectedComic);
                             } else {
@@ -223,29 +219,17 @@ $("#back-btn").addEventListener("click", () => {
     $("#comic-details").classList.add("hidden");
 });
 
-/* PAGINATION */
-const updatePageInfo = () => {
-    $("#current-page").textContent = `pag ${page}`;
-};
-
-const fetchMarvelSearchCount = async (type, orderBy, searchInput, startsWith) => {
-    let url;
-    if (type === 'characters') {
-        url = buildUrlMarvel(type, orderBy, startsWith);
-    } else {
-        url = buildUrlMarvel(type, orderBy, startsWith);
-    }
-    try {
-        const response = await fetchMarvel(url);
-        totalSearchResults = response.data.total;
-        return totalSearchResults;
-    } catch (error) {
-        console.error("Error fetching Marvel search count:", error);
-        throw error;
-    }
-};
-
 /* SEARCH EVENTS*/
+$("#type-select").addEventListener("change", (event) => {
+    if (event.target.value === "characters") {
+        $("#newer-option").classList.add('hidden');
+        $("#older-option").classList.add('hidden');
+    } else {
+        $("#newer-option").classList.remove('hidden');
+        $("#older-option").classList.remove('hidden');
+    }
+})
+
 $("#search-btn").addEventListener("click", async () => {
     $("#results-container").classList.remove("hidden");
     $("#comic-details").classList.add("hidden");
@@ -292,21 +276,43 @@ $("#search-btn").addEventListener("click", async () => {
     }
 });
 
+/* PAGINATION */
+const updatePageInfo = () => {
+    $("#current-page").textContent = `pag ${page}`;
+};
+
+const fetchMarvelSearchCount = async (type, orderBy, searchInput, startsWith) => {
+    let url;
+    if (type === 'characters') {
+        url = buildUrlMarvel(type, orderBy, startsWith);
+    } else {
+        url = buildUrlMarvel(type, orderBy, startsWith);
+    }
+    try {
+        const response = await fetchMarvel(url);
+        totalSearchResults = response.data.total;
+        return totalSearchResults;
+    } catch (error) {
+        console.error("Error fetching Marvel search count:", error);
+        throw error;
+    }
+};
+
 const updatePaginationButton = () => {
     const lastPage = Math.ceil(marvelData.total / itemsPerPage);
     if (page === 1) {
         $("#first-page").classList.add('hidden');
         $("#previous-page").classList.add('hidden');
     } else {
-            $("#first-page").classList.remove('hidden');
-            $("#previous-page").classList.remove('hidden');
+        $("#first-page").classList.remove('hidden');
+        $("#previous-page").classList.remove('hidden');
     }
     if (page === lastPage) {
         $("#next-page").classList.add('hidden');
         $("#last-page").classList.add('hidden');
     } else {
-            $("#next-page").classList.remove('hidden');
-            $("#last-page").classList.remove('hidden');
+        $("#next-page").classList.remove('hidden');
+        $("#last-page").classList.remove('hidden');
     }
 }
 
@@ -378,7 +384,7 @@ $("#last-page").addEventListener("click", async () => {
     }
 });
 
-/* change mode */
+/* CHANGE MODE */
 const toggleDarkMode = () => {
 
     const elementsToToggle = ["#page-body", "#search-btn", "#footer", "#pagination"];
