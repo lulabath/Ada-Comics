@@ -1,10 +1,10 @@
 /* Useful Features */
 const $ = (selector) => document.querySelector(selector);
 
-const cleanUrl = `http://gateway.marvel.com/v1/public/`
-const publicKey = "&apikey=6acd8c25d84392110b6f02e68799aac1"
-const hash = "&hash=bf65d7f2a26f6d85116463c0b81b4273"
-let ts = `ts=1`
+const cleanUrl = `https://gateway.marvel.com/v1/public/`;
+const publicKey = "&apikey=6acd8c25d84392110b6f02e68799aac1";
+const hash = "&hash=bf65d7f2a26f6d85116463c0b81b4273";
+let ts = `ts=1`;
 let startsWithFilter = ''; // acá puedo almacenar el filtro del input text
 let orderBy = '';
 let marvelData;
@@ -336,7 +336,7 @@ const updatePaginationButton = () => {
         $("#previous-page").classList.add('hidden');
     } else {
         $("#first-page").classList.remove('hidden');
-        $("#first-page").classList.remove('hidden');
+        $("#previous-page").classList.remove('hidden');
     }
     
     if (page === lastPage) {
