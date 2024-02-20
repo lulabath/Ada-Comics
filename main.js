@@ -228,7 +228,7 @@ const updatePageInfo = () => {
     $("#current-page").textContent = `pag ${page}`;
 };
 
-const fetchMarvelSearchConut = async (type, orderBy, searchInput, startsWith) => {
+const fetchMarvelSearchCount = async (type, orderBy, searchInput, startsWith) => {
     let url;
     if (type === 'characters') {
         url = buildUrlMarvel(type, orderBy, startsWith);
@@ -274,7 +274,7 @@ $("#search-btn").addEventListener("click", async () => {
 
         let filteredData = marvelData.results;
         if (searchInput.length > 0) {
-            totalSearchResults = await fetchMarvelSearchConut(type, orderBy, searchInput, startsWith);
+            totalSearchResults = await fetchMarvelSearchCount(type, orderBy, searchInput, startsWith);
             $("#count-results").textContent = `Resultados: ${totalSearchResults}`;
             filteredData = marvelData.results.filter(item =>
                 (item.name || '').toLowerCase().includes(searchInput.toLowerCase()) || (item.title || '').toLowerCase().includes(searchInput.toLowerCase())
