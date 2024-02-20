@@ -3,7 +3,7 @@
 <p align="center">Proyecto para ADA ITW, en donde incorporamos lo aprendido sobre manejo de Apis.</p>
 <h1 align="center"><img src="https://images.squarespace-cdn.com/content/v1/54bdcba5e4b08f92b173441f/1542485005084-NWVVT3QZK9OVTKGCZLZ4/stan-lee-and-supes-7x4-1.jpg" width="400px"></h1>
 
-📍 Link al proyecto:
+📍 Link al proyecto: https://lulabath.github.io/Ada-Comics/
 
 ## 📝 Consigna
 La idea de este proyecto es crear una aplicación que permita listar cómics y personajes de comics, y obtener información sobre los mismos. Para eso utilizaré una API REST con datos reales, realizaré consultas a la misma pasándole distintos parámetros que permitan personalizar la búsqueda y mostrarás los datos obtenidos como respuesta.

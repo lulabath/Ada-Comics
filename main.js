@@ -5,26 +5,26 @@ const cleanUrl = `https://gateway.marvel.com/v1/public/`;
 const publicKey = "&apikey=6acd8c25d84392110b6f02e68799aac1";
 const hash = "&hash=bf65d7f2a26f6d85116463c0b81b4273";
 let ts = `ts=1`;
-let startsWithFilter = ''; // acá puedo almacenar el filtro del input text
+let startsWithFilter = '';
 let orderBy = '';
 let marvelData;
 let page = 1;
 let itemsPerPage = 20;
 let offset = 0;
 
-
-
 /* construyo la URL */
 const buildUrlMarvel = (recurso, orderBy, startsWith) => {
     let url = `${cleanUrl}${recurso}?${ts}${publicKey}${hash}`;
     if (startsWith) {
-        url += (recurso === 'characters') ? `&nameStartsWith=${startsWith}` : `&titleStartsWith=${startsWith}`;
+        url +=  (recurso === 'characters') ? `&nameStartsWith=${startsWith}` : `&titleStartsWith=${startsWith}`;
     }
     if (orderBy) {
         url += `&orderBy=${orderBy}`;
     }
     return url;
 };
+
+
 
 /* construyo los searchParams */
 const buildSearchParams = (offset, itemsPerPage) => {
@@ -35,9 +35,7 @@ const buildSearchParams = (offset, itemsPerPage) => {
 const fetchMarvel = async (url) => {
     const response = await fetch(url);
     const data = await response.json();
-    //console.log("data=", data);
     return data;
-
 };
 
 const getMarvel = async (recurso, offset, itemsPerPage) => {
@@ -45,12 +43,10 @@ const getMarvel = async (recurso, offset, itemsPerPage) => {
     return await fetchMarvel(url);
 };
 
-
 const printDataMarvel = (recurso, data) => {
     $("#results").innerHTML = ``;
-
     for (const item of data) {
-        let thumbnail = item.thumbnail.path + "." + item.thumbnail.extension; /* NO FUNCIONAN LOS FOCUS*/
+        let thumbnail = item.thumbnail.path + "." + item.thumbnail.extension;
         $("#results").innerHTML += `
         <div tabindex="0" class="flex flex-col font-semibold w-56 h-100 m-2 p-2" data-id="${item.id}">
         <div class="h-2/3  :focus:translate-y-[5]">
@@ -61,62 +57,46 @@ const printDataMarvel = (recurso, data) => {
         </div>
         </div>
         `;
-        //console.log(item);
     }
 };
 
-
 $("#results").addEventListener("click", async (event) => {
     const element = event.target.closest(".flex");
-    //console.log("soy el elemento :", element);
     if (element) {
         const id = element.getAttribute("data-id");
         const selectedData = marvelData.results.find((data) => data.id == id);
-        //console.log("selected comic dada", selectedData);
         if (selectedData) {
             if (selectedData.resourceURI.includes('characters')) {
                 showCharacterDetails(id);
-                //console.log("soy el id del elemento:", id);
             } else {
                 try {
                     await showComicDetails(selectedData);
-                    //console.log("soy el id del elemento:", id);
                 } catch (error) {
                     console.error("error cuando muestro detalle de comic", error);
                 }
             }
-
         }
     }
-
 });
-
 
 const showComicDetails = async (comic) => {
     if (!comic || !comic.thumbnail || !comic.dates || !comic.dates[0].date) {
         console.error('Invalid comic details:', comic);
         return;
     }
-
     const dateString = comic.dates[0].date;
-    //console.log(comic.dates[0].date)
-
     const year = dateString.slice(0, 4);
     const month = dateString.slice(5, 7);
     const day = dateString.slice(8, 10);
-
     const formattedDate = `${day}-${month}-${year}`;
-
     const creatorsNames = comic.creators.items.map(creator => creator.name).join(',');
 
-    //actualizo los elementos
     $("#comic-thumbnail").src = `${comic.thumbnail.path}.${comic.thumbnail.extension}`;
     $("#comic-thumbnail").classList.add("w-52", "h-64");
     $("#comic-title").textContent = comic.title;
     $("#comic-date").textContent = formattedDate;
     $("#comic-description").textContent = comic.description || "";
     $("#comic-creators").textContent = creatorsNames;
-    //console.log(creatorsNames);
 
     try {
         await getComicDetails(comic.id);
@@ -135,12 +115,9 @@ const showComicDetails = async (comic) => {
                      <p class="my-6 text-white text-sm">${characterDetails.data.results[0].name}</p>
                    </div>`
                     }
-
-                } else if (characters.length = 0) {
+                } else {
                     $("#comic-characters").innerHTML = "<p>Sin personajes</p>";
                 }
-
-                //agrego el atributo data id con la clase charactercard
                 document.querySelectorAll('.character-card').forEach(card => {
                     card.addEventListener('click', () => {
                         const characterId = card.getAttribute('data-id');
@@ -152,8 +129,6 @@ const showComicDetails = async (comic) => {
         console.error("error al obtener los detalles del comic", error);
         throw error;
     }
-
-    //manejo las vistas
     $("#results-container").classList.add("hidden");
     $("#character-details").classList.add("hidden");
     $("#comic-details").classList.remove("hidden");
@@ -161,9 +136,7 @@ const showComicDetails = async (comic) => {
 
 const getComicDetails = async (comicId) => {
     try {
-
         const url = buildUrlMarvel(`comics/${comicId}`);
-
         return await fetchMarvel(url);
     }
     catch (error) {
@@ -194,8 +167,6 @@ const showCharacterDetails = (characterId) => {
             $("#character-name").textContent = character.data.results[0].name;
             $("#character-description").textContent = character.data.results[0].description || "Sin descripción disponible";
 
-            //muestro tarj
-
             getCharacterComics(characterId)
                 .then(async (response) => {
                     const comics = response.data.results;
@@ -208,28 +179,24 @@ const showCharacterDetails = (characterId) => {
                         <p class="text-xs mb-4">${comic.title}</p>
                     </div>`;
                     }
-                    // <p>${comic.title}</p>
-                    //agrego el atributo por la clase comic-card
                     document.querySelectorAll('.comic-card').forEach(card => {
                         card.addEventListener('click', () => {
                             const comicId = card.getAttribute('data-id');
                             const selectedComic = comics.find(c => c.id == comicId); // así puedo buscar el comic correspondiente en el array 
-                            if(selectedComic){
+                            if (selectedComic) {
                                 showComicDetails(selectedComic);
-                            }else {
+                            } else {
                                 console.error('Comic not found');
                             }
-                            
+
                         });
                     });
                 });
-
         })
         .catch(error => {
             console.error("Error characterDetails con fetching:", error);
         });
 
-    //muestro el contenedor de personaje y oculto los resultados listados
     $("#character-details").classList.remove("hidden");
     $("#results-container").classList.add("hidden");
     $("#comic-details").classList.add("hidden");
@@ -239,7 +206,6 @@ const getCharacterDetails = async (characterId) => {
     try {
         const url = buildUrlMarvel(`characters/${characterId}`);
         const response = await fetchMarvel(url);
-        //console.log("response de characterDetails:", response);
         return response;
     } catch (error) {
         console.error("error character details fetching: ", error);
@@ -247,14 +213,12 @@ const getCharacterDetails = async (characterId) => {
     }
 };
 
-//evento para volver a listar los resultados con back to results btn
 $("#back-to-results").addEventListener("click", () => {
     $("#results-container").classList.remove("hidden");
     $("#character-details").classList.add("hidden");
 })
 
 $("#back-btn").addEventListener("click", () => {
-    //console.log("funciona el btn back");
     $("#results-container").classList.remove("hidden");
     $("#comic-details").classList.add("hidden");
 });
@@ -264,7 +228,7 @@ const updatePageInfo = () => {
     $("#current-page").textContent = `pag ${page}`;
 };
 
-const fetchMarvelSearchConut = async (type, orderBy, searchInput, startsWith) => {
+const fetchMarvelSearchCount = async (type, orderBy, searchInput, startsWith) => {
     let url;
     if (type === 'characters') {
         url = buildUrlMarvel(type, orderBy, startsWith);
@@ -273,7 +237,7 @@ const fetchMarvelSearchConut = async (type, orderBy, searchInput, startsWith) =>
     }
     try {
         const response = await fetchMarvel(url);
-        totalSearchResults = response.data.total;  //así almaceno el total de los resultados
+        totalSearchResults = response.data.total;
         return totalSearchResults;
     } catch (error) {
         console.error("Error fetching Marvel search count:", error);
@@ -294,17 +258,15 @@ $("#search-btn").addEventListener("click", async () => {
     let startsWith = '';
 
     offset = 0;
-
     try {
         if (type === 'characters') {
             orderBy = (sort === "a-to-z") ? 'name' : (sort === "z-to-a") ? '-name' : '';
-            startsWith = (searchInput.length > 0) ? searchInput.charAt(0) : '';
+            startsWith = (searchInput.length > 0) ? searchInput : '';
         } else if (type === 'comics') {
             orderBy = (sort === "a-to-z") ? 'title' : (sort === "z-to-a") ? '-title' : (sort === 'newer') ? '-modified' : (sort === 'older') ? 'modified' : '';
-            startsWith = (searchInput.length > 0) ? searchInput.charAt(0) : '';
+            startsWith = (searchInput.length > 0) ? searchInput : '';
         }
-
-        startsWithFilter = searchInput.charAt(0);
+        startsWithFilter = searchInput;
 
         const url = buildUrlMarvel(type, orderBy, startsWith) + buildSearchParams(offset, itemsPerPage);
         const response = await fetchMarvel(url);
@@ -312,7 +274,7 @@ $("#search-btn").addEventListener("click", async () => {
 
         let filteredData = marvelData.results;
         if (searchInput.length > 0) {
-            totalSearchResults = await fetchMarvelSearchConut(type, orderBy, searchInput, startsWith);
+            totalSearchResults = await fetchMarvelSearchCount(type, orderBy, searchInput, startsWith);
             $("#count-results").textContent = `Resultados: ${totalSearchResults}`;
             filteredData = marvelData.results.filter(item =>
                 (item.name || '').toLowerCase().includes(searchInput.toLowerCase()) || (item.title || '').toLowerCase().includes(searchInput.toLowerCase())
@@ -323,6 +285,7 @@ $("#search-btn").addEventListener("click", async () => {
 
         printDataMarvel(type, filteredData);
         updatePageInfo();
+        updatePaginationButton();
 
     } catch (error) {
         console.error("error fetching", error)
@@ -331,30 +294,27 @@ $("#search-btn").addEventListener("click", async () => {
 
 const updatePaginationButton = () => {
     const lastPage = Math.ceil(marvelData.total / itemsPerPage);
-    if(page === 1) {
+    if (page === 1) {
         $("#first-page").classList.add('hidden');
         $("#previous-page").classList.add('hidden');
     } else {
-        $("#first-page").classList.remove('hidden');
-        $("#previous-page").classList.remove('hidden');
+            $("#first-page").classList.remove('hidden');
+            $("#previous-page").classList.remove('hidden');
     }
-    
     if (page === lastPage) {
         $("#next-page").classList.add('hidden');
         $("#last-page").classList.add('hidden');
     } else {
-        $("#next-page").classList.remove('hidden');
-        $("#last-page").classList.remove('hidden');
+            $("#next-page").classList.remove('hidden');
+            $("#last-page").classList.remove('hidden');
     }
 }
-
 
 $("#first-page").addEventListener("click", async () => {
     page = 1;
     offset = (page - 1) * itemsPerPage;
     const newData = await getMarvel($("#type-select").value, offset, itemsPerPage);
     marvelData = newData.data;
-
 
     const url = buildUrlMarvel($("#type-select").value, orderBy, startsWithFilter) + buildSearchParams(offset, itemsPerPage);
     const response = await fetchMarvel(url);
@@ -363,7 +323,6 @@ $("#first-page").addEventListener("click", async () => {
     printDataMarvel($("#type-select").value, marvelData.results);
     updatePageInfo();
     updatePaginationButton();
-    //console.log('soy first');
 });
 
 $("#previous-page").addEventListener("click", async () => {
@@ -375,13 +334,12 @@ $("#previous-page").addEventListener("click", async () => {
 
         const url = buildUrlMarvel($("#type-select").value, orderBy, startsWithFilter) + buildSearchParams(offset, itemsPerPage);
         const response = await fetchMarvel(url);
-        marvelData = response.data; 
+        marvelData = response.data;
 
         printDataMarvel($("#type-select").value, marvelData.results);
         updatePageInfo();
         updatePaginationButton();
     }
-    //console.log('soy prev');
 });
 
 $("#next-page").addEventListener("click", async () => {
@@ -400,12 +358,10 @@ $("#next-page").addEventListener("click", async () => {
         updatePageInfo();
         updatePaginationButton();
     }
-    //console.log('soy next');
 });
 
 $("#last-page").addEventListener("click", async () => {
     const lastPage = Math.ceil(marvelData.total / itemsPerPage);
-    //console.log(marvelData.total)
     if (page < lastPage) {
         page = lastPage;
         offset = (page - 1) * itemsPerPage;
@@ -420,7 +376,6 @@ $("#last-page").addEventListener("click", async () => {
         updatePageInfo();
         updatePaginationButton();
     }
-    //console.log('soy last');
 });
 
 /* change mode */
@@ -447,15 +402,12 @@ const toggleDarkMode = () => {
     $("#sun-light").classList.toggle("hidden");
     $("#moon-dark").classList.toggle("hidden");
 };
-
 $("#sun-light").addEventListener("click", () => {
     toggleDarkMode();
 });
-
 $("#moon-dark").addEventListener("click", () => {
     toggleDarkMode();
 });
-
 
 /* INITIALIZE APP */
 window.addEventListener("load", async () => {
